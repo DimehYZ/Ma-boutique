@@ -1,0 +1,6 @@
+[build]
+  command = ""
+  destination = "."
+
+[build.environment]
+  NODE_VERSION = "18"

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAISON · Commande confirmée</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --noir: #0d0d0d;
+      --creme: #f7f3ec;
+      --creme-fonce: #ede8df;
+      --or: #b8955a;
+      --or-clair: #d4b483;
+      --gris: #8a8680;
+      --gris-clair: #e8e4de;
+      --blanc: #fdfcfa;
+      --font-serif: 'Cormorant Garamond', serif;
+      --font-sans: 'Jost', sans-serif;
+      --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--blanc);
+      color: var(--noir);
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 72px;
+      background: var(--blanc);
+      border-bottom: 1px solid var(--gris-clair);
+    }
+
+    .nav-logo {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--noir);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--gris);
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--noir); }
+
+    /* ─── MAIN ─── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8rem 3rem;
+      background: var(--creme);
+    }
+
+    .success-card {
+      background: var(--blanc);
+      max-width: 560px;
+      width: 100%;
+      padding: 4rem;
+      text-align: center;
+      border: 1px solid var(--gris-clair);
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s forwards;
+    }
+
+    .success-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1px solid var(--or);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      opacity: 0;
+      animation: scaleIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s forwards;
+    }
+
+    .success-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--or);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .success-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--or);
+      margin-bottom: 1rem;
+    }
+
+    .success-title {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--noir);
+      margin-bottom: 1.5rem;
+    }
+    .success-title em {
+      font-style: italic;
+      color: var(--or);
+    }
+
+    .success-text {
+      font-size: 13px;
+      color: var(--gris);
+      line-height: 1.9;
+      margin-bottom: 2.5rem;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .success-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--or);
+      margin: 0 auto 2.5rem;
+    }
+
+    .success-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 3rem;
+      text-align: left;
+      background: var(--creme);
+      padding: 1.5rem;
+    }
+
+    .success-detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .success-detail-label {
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gris);
+    }
+    .success-detail-value {
+      color: var(--noir);
+      font-weight: 400;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--noir);
+      color: var(--blanc);
+      text-decoration: none;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 1rem 2.5rem;
+      border: 1px solid var(--noir);
+      transition: all var(--transition);
+    }
+    .btn-primary:hover {
+      background: var(--or);
+      border-color: var(--or);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--noir);
+      color: var(--blanc);
+      padding: 2rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-brand {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+    }
+    .footer-copy {
+      font-size: 11px;
+      color: #444;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1.5rem; }
+      .nav-links { display: none; }
+      main { padding: 6rem 1.5rem; }
+      .success-card { padding: 2.5rem 1.5rem; }
+      footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a href="/" class="nav-logo">Maison</a>
+  <ul class="nav-links">
+    <li><a href="/#catalogue">Collection</a></li>
+    <li><a href="/#lookbook">Lookbook</a></li>
+    <li><a href="/#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ─── MAIN ─── -->
+<main>
+  <div class="success-card">
+
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+
+    <p class="success-eyebrow">Paiement validé</p>
+    <h1 class="success-title">Commande <em>confirmée</em></h1>
+
+    <p class="success-text">
+      Merci pour votre confiance. Votre commande a bien été enregistrée et un email de confirmation vous a été envoyé. Nous préparons votre colis avec soin.
+    </p>
+
+    <div class="success-divider"></div>
+
+    <div class="success-details">
+      <div class="success-detail-row">
+        <span class="success-detail-label">Délai de livraison</span>
+        <span class="success-detail-value">3 à 5 jours ouvrés</span>
+      </div>
+      <div class="success-detail-row">
+        <span class="success-detail-label">Suivi de commande</span>
+        <span class="success-detail-value">Par email</span>
+      </div>
+      <div class="success-detail-row">
+        <span class="success-detail-label">Service client</span>
+        <span class="success-detail-value">contact@maison.fr</span>
+      </div>
+    </div>
+
+    <a href="/" class="btn-primary">Retourner à la boutique →</a>
+
+  </div>
+</main>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <p class="footer-brand">Maison</p>
+  <p class="footer-copy">© 2025 Maison · Tous droits réservés</p>
+</footer>
+
+</body>
+</html>
