@@ -8,205 +8,440 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
+    /* ─── RESET & TOKENS ────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --lime: #c8f135; --violet: #7c3aed; --orange: #ff6b2b;
       --rose: #ff3b8b; --noir: #0a0a0a; --blanc: #fafafa;
       --gris: #6b7280; --gris-clair: #e5e7eb; --fond: #f4f3ef;
       --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+      /* Spring easing — Emil-style */
+      --spring: linear(0,.006,.025 2.8%,.101 6.1%,.539 18.9%,.721 25.3%,.849 31.5%,.937 38.1%,.968 41.8%,.991 45.7%,1.006 50.1%,1.015 55%,1.017 59.2%,1.016 63.3%,1.007 72.3%,1.001 86.5%,1);
+      --spring-fast: linear(0,.01,.04 3%,.16 7.6%,.49 17.3%,.7 24.2%,.856 31.4%,.948 37.6%,.991 42.9%,1.008 46%,1.018 51%,1.021 55%,1.013 67%,1.002 79%,1);
       --ease: cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+
+    /* ─── ANIMATABLE PROPERTIES (Emil trick) ────────────────── */
+    @property --drawer-y { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+    @property --scale-val { syntax: '<number>'; inherits: false; initial-value: 1; }
+
     html { scroll-behavior: smooth; }
     body { font-family: var(--font-body); background: var(--fond); color: var(--noir); font-weight: 300; font-size: 15px; line-height: 1.7; overflow-x: hidden; }
-    ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: var(--fond); } ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 2px; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 2px; }
     ::selection { background: var(--lime); color: var(--noir); }
 
-    .cursor { width: 12px; height: 12px; background: var(--lime); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: transform 0.15s var(--ease), width 0.3s var(--ease), height 0.3s var(--ease), background 0.3s; transform: translate(-50%, -50%); mix-blend-mode: multiply; }
-    .cursor.hover { width: 40px; height: 40px; background: var(--violet); opacity: 0.6; }
+    /* ─── CUSTOM CURSOR ─────────────────────────────────────── */
+    .cursor {
+      width: 10px; height: 10px; background: var(--lime);
+      border-radius: 50%; position: fixed; pointer-events: none;
+      z-index: 9999; transform: translate(-50%, -50%);
+      mix-blend-mode: multiply; transition: width .3s var(--spring), height .3s var(--spring), background .25s;
+      will-change: left, top;
+    }
+    .cursor.hover { width: 38px; height: 38px; background: var(--violet); opacity: .55; }
+    .cursor.click { width: 14px; height: 14px; }
     @media (hover: none) { .cursor { display: none; } }
 
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; height: 68px; background: rgba(244,243,239,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.07); }
-    .nav-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: var(--noir); text-decoration: none; letter-spacing: -0.03em; display: flex; align-items: center; gap: 8px; }
-    .nav-logo span { background: var(--lime); color: var(--noir); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; }
+    /* ─── NAV ───────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem; height: 64px;
+      background: rgba(244,243,239,.88); backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      transition: box-shadow .3s;
+    }
+    nav.scrolled { box-shadow: 0 4px 40px rgba(0,0,0,.08); }
+    .nav-logo { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: var(--noir); text-decoration: none; letter-spacing: -.04em; display: flex; align-items: center; gap: 8px; }
+    .nav-logo-badge { background: var(--lime); padding: 2px 9px; border-radius: 4px; font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
     .nav-links { display: flex; gap: 2rem; list-style: none; }
-    .nav-links a { font-size: 13px; font-weight: 500; text-decoration: none; color: var(--gris); transition: color 0.2s; position: relative; }
-    .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--violet); transform: scaleX(0); transform-origin: left; transition: transform 0.3s var(--ease); }
+    .nav-links a { font-size: 13px; font-weight: 500; color: var(--gris); text-decoration: none; position: relative; transition: color .2s; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 1.5px; background: var(--noir); transform: scaleX(0); transform-origin: left; transition: transform .35s var(--spring); }
     .nav-links a:hover { color: var(--noir); }
     .nav-links a:hover::after { transform: scaleX(1); }
-    .nav-cart { background: var(--noir); color: var(--blanc); border: none; font-family: var(--font-display); font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 100px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.25s var(--ease-back); }
-    .nav-cart:hover { background: var(--violet); transform: scale(1.05); }
-    .cart-count { background: var(--lime); color: var(--noir); font-size: 11px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-    .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; padding-top: 68px; overflow: hidden; }
+    /* ── Magnetic cart button ── */
+    .nav-cart-wrap { position: relative; }
+    .nav-cart {
+      background: var(--noir); color: var(--blanc); border: none;
+      font-family: var(--font-display); font-size: 13px; font-weight: 600;
+      padding: 10px 20px; border-radius: 100px; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: background .25s, transform .15s var(--spring-fast);
+      will-change: transform;
+    }
+    .nav-cart:hover { background: var(--violet); }
+    .cart-count {
+      background: var(--lime); color: var(--noir); font-size: 11px; font-weight: 800;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .4s var(--spring);
+    }
+    .cart-count.bump { transform: scale(1.4); }
+
+    /* ─── HERO ──────────────────────────────────────────────── */
+    .hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; padding-top: 64px; overflow: hidden; }
     .hero-left { padding: 5rem 3rem 5rem 2.5rem; display: flex; flex-direction: column; justify-content: center; }
-    .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--blanc); border: 1px solid var(--gris-clair); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--gris); margin-bottom: 2rem; width: fit-content; opacity: 0; animation: fadeUp 0.6s var(--ease) 0.1s forwards; }
+    .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--blanc); border: 1px solid var(--gris-clair); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--gris); margin-bottom: 2rem; width: fit-content; opacity: 0; animation: fadeUp .6s var(--spring) .1s forwards; }
     .hero-tag-dot { width: 8px; height: 8px; background: var(--lime); border-radius: 50%; animation: pulse 2s infinite; }
-    .hero-title { font-family: var(--font-display); font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 800; line-height: 1.0; letter-spacing: -0.04em; color: var(--noir); margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s var(--ease) 0.2s forwards; }
+    .hero-title { font-family: var(--font-display); font-size: clamp(2.8rem, 5.5vw, 5rem); font-weight: 800; line-height: 1.0; letter-spacing: -.04em; color: var(--noir); margin-bottom: 1.5rem; opacity: 0; animation: fadeUp .7s var(--spring) .2s forwards; }
     .hero-title .block { display: inline-block; background: var(--lime); padding: 0 12px; border-radius: 8px; color: var(--noir); transform: rotate(-1.5deg); }
-    .hero-desc { font-size: 15px; color: var(--gris); max-width: 400px; line-height: 1.8; margin-bottom: 2.5rem; opacity: 0; animation: fadeUp 0.7s var(--ease) 0.3s forwards; }
-    .hero-cta { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.7s var(--ease) 0.4s forwards; }
-    .btn-main { display: inline-flex; align-items: center; gap: 10px; background: var(--noir); color: var(--blanc); text-decoration: none; font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 14px 28px; border-radius: 100px; border: none; cursor: pointer; transition: all 0.3s var(--ease-back); }
-    .btn-main:hover { background: var(--violet); transform: translateY(-2px) scale(1.03); }
-    .btn-main .arrow { transition: transform 0.3s var(--ease); }
-    .btn-main:hover .arrow { transform: translateX(4px); }
-    .btn-outline { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--noir); text-decoration: none; font-family: var(--font-display); font-size: 14px; font-weight: 600; padding: 14px 24px; border-radius: 100px; border: 2px solid var(--gris-clair); cursor: pointer; transition: all 0.25s var(--ease); }
-    .btn-outline:hover { border-color: var(--violet); color: var(--violet); }
-    .hero-stats { display: flex; gap: 2rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--gris-clair); opacity: 0; animation: fadeUp 0.7s var(--ease) 0.5s forwards; }
+    .hero-desc { font-size: 15px; color: var(--gris); max-width: 400px; line-height: 1.9; margin-bottom: 2.5rem; opacity: 0; animation: fadeUp .7s var(--spring) .3s forwards; }
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s var(--spring) .4s forwards; }
+    .btn-main {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--noir); color: var(--blanc); text-decoration: none;
+      font-family: var(--font-display); font-size: 14px; font-weight: 700;
+      padding: 13px 26px; border-radius: 100px; border: none; cursor: pointer;
+      transition: background .25s, transform .3s var(--spring);
+      position: relative; overflow: hidden;
+    }
+    .btn-main:hover { background: var(--violet); transform: translateY(-2px); }
+    .btn-main .arrow { display: inline-block; transition: transform .3s var(--spring); }
+    .btn-main:hover .arrow { transform: translateX(5px); }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: var(--noir); text-decoration: none;
+      font-family: var(--font-display); font-size: 14px; font-weight: 600;
+      padding: 13px 22px; border-radius: 100px; border: 1.5px solid var(--gris-clair);
+      cursor: pointer; transition: border-color .25s, color .25s, transform .3s var(--spring);
+    }
+    .btn-outline:hover { border-color: var(--violet); color: var(--violet); transform: translateY(-1px); }
+    .hero-stats { display: flex; gap: 2rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--gris-clair); opacity: 0; animation: fadeUp .7s var(--spring) .5s forwards; }
     .stat-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--noir); line-height: 1; }
     .stat-label { font-size: 12px; color: var(--gris); margin-top: 4px; }
     .hero-right { background: var(--violet); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    .hero-right-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; padding: 3rem; }
-    .hero-card { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 2rem; color: var(--blanc); text-align: center; backdrop-filter: blur(10px); width: 100%; max-width: 320px; animation: float 4s ease-in-out infinite; }
-    .hero-card-img { width: 100%; aspect-ratio: 3/4; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 4rem; }
+    .hero-right-inner { padding: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .hero-card {
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 20px; padding: 2rem; color: var(--blanc); text-align: center;
+      backdrop-filter: blur(10px); width: 100%; max-width: 300px;
+      animation: float 4s ease-in-out infinite;
+      transition: transform .4s var(--spring);
+    }
+    .hero-card:hover { transform: scale(1.03) translateY(-4px); }
+    .hero-card-img { width: 100%; aspect-ratio: 3/4; background: rgba(255,255,255,.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 4rem; }
     .hero-card-name { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
     .hero-card-price { font-size: 1.3rem; font-weight: 800; color: var(--lime); margin-top: 4px; }
-    .hero-badge { position: absolute; background: var(--lime); color: var(--noir); border-radius: 100px; padding: 8px 16px; font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 0.05em; }
+    .hero-badge { position: absolute; background: var(--lime); color: var(--noir); border-radius: 100px; padding: 8px 16px; font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: .06em; }
     .hero-badge.top { top: 2rem; right: 2rem; transform: rotate(6deg); }
     .hero-badge.bottom { bottom: 2rem; left: 2rem; transform: rotate(-4deg); animation: float 3s ease-in-out 1s infinite; }
 
-    .marquee-wrap { overflow: hidden; background: var(--noir); padding: 1rem 0; border-top: 2px solid var(--lime); border-bottom: 2px solid var(--lime); }
-    .marquee-track { display: flex; gap: 3rem; animation: marquee 18s linear infinite; width: max-content; }
-    .marquee-item { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--blanc); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; display: flex; align-items: center; gap: 1rem; }
-    .marquee-dot { width: 6px; height: 6px; background: var(--lime); border-radius: 50%; }
+    /* ─── MARQUEE ───────────────────────────────────────────── */
+    .marquee-wrap { overflow: hidden; background: var(--noir); padding: .9rem 0; border-top: 2px solid var(--lime); border-bottom: 2px solid var(--lime); }
+    .marquee-track { display: flex; gap: 3rem; animation: marquee 20s linear infinite; width: max-content; }
+    .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+    .marquee-item { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--blanc); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; display: flex; align-items: center; gap: 1rem; }
+    .marquee-dot { width: 5px; height: 5px; background: var(--lime); border-radius: 50%; }
 
-    #catalogue { padding: 6rem 2.5rem; background: var(--fond); }
+    /* ─── CATALOGUE ─────────────────────────────────────────── */
+    #catalogue { padding: 6rem 2.5rem; }
     .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem; }
-    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--violet); margin-bottom: 0.5rem; }
-    .section-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: var(--noir); }
-    .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .filter-btn { background: var(--blanc); border: 1.5px solid var(--gris-clair); color: var(--gris); font-family: var(--font-display); font-size: 12px; font-weight: 600; padding: 8px 18px; border-radius: 100px; cursor: pointer; transition: all 0.25s var(--ease-back); }
-    .filter-btn:hover { border-color: var(--violet); color: var(--violet); transform: translateY(-1px); }
-    .filter-btn.active { background: var(--noir); border-color: var(--noir); color: var(--blanc); }
-    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
-    .product-card { background: var(--blanc); border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.4s var(--ease-back), box-shadow 0.4s var(--ease); position: relative; }
-    .product-card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,0.12); }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--violet); margin-bottom: .5rem; }
+    .section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; color: var(--noir); }
+
+    /* ── Pill filter with animated indicator ── */
+    .filters { display: flex; gap: .4rem; background: rgba(0,0,0,.04); padding: 4px; border-radius: 100px; }
+    .filter-btn {
+      background: transparent; border: none; color: var(--gris);
+      font-family: var(--font-display); font-size: 12px; font-weight: 600;
+      padding: 7px 16px; border-radius: 100px; cursor: pointer;
+      transition: color .25s, background .3s var(--spring), transform .2s var(--spring-fast);
+      position: relative;
+    }
+    .filter-btn:hover:not(.active) { color: var(--noir); transform: scale(1.04); }
+    .filter-btn.active { background: var(--noir); color: var(--blanc); }
+
+    /* ── Product cards ── */
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+    .product-card {
+      background: var(--blanc); border-radius: 18px; overflow: hidden; cursor: pointer;
+      transition: transform .5s var(--spring), box-shadow .4s;
+      position: relative; will-change: transform;
+    }
+    .product-card:hover { transform: translateY(-8px) scale(1.01); box-shadow: 0 28px 56px rgba(0,0,0,.13); }
     .product-img { aspect-ratio: 3/4; position: relative; overflow: hidden; }
-    .product-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-size: 4rem; background: linear-gradient(135deg, #f0f0f0, #e0e0e0); transition: transform 0.5s var(--ease); }
-    .product-card:hover .product-placeholder { transform: scale(1.05); }
-    .product-overlay { position: absolute; inset: 0; background: rgba(10,10,10,0.5); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1.5rem; opacity: 0; transition: opacity 0.3s var(--ease); }
+    .product-placeholder {
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 4.5rem;
+      background: linear-gradient(145deg, #f0eeea, #e8e5de);
+      transition: transform .6s var(--spring);
+    }
+    .product-card:hover .product-placeholder { transform: scale(1.07); }
+    .product-overlay {
+      position: absolute; inset: 0; display: flex; align-items: flex-end;
+      justify-content: center; padding-bottom: 1.5rem;
+      background: linear-gradient(transparent 40%, rgba(10,10,10,.6));
+      opacity: 0; transition: opacity .3s;
+    }
     .product-card:hover .product-overlay { opacity: 1; }
-    .add-to-cart { background: var(--lime); color: var(--noir); border: none; font-family: var(--font-display); font-size: 13px; font-weight: 700; padding: 12px 24px; border-radius: 100px; cursor: pointer; transform: translateY(12px); transition: transform 0.3s var(--ease-back), background 0.2s; }
-    .product-card:hover .add-to-cart { transform: translateY(0); }
+    .add-to-cart {
+      background: var(--lime); color: var(--noir); border: none;
+      font-family: var(--font-display); font-size: 13px; font-weight: 700;
+      padding: 11px 24px; border-radius: 100px; cursor: pointer;
+      transform: translateY(16px) scale(.95);
+      transition: transform .4s var(--spring), background .2s;
+    }
+    .product-card:hover .add-to-cart { transform: translateY(0) scale(1); }
     .add-to-cart:hover { background: var(--blanc); }
-    .product-tag { position: absolute; top: 1rem; left: 1rem; background: var(--orange); color: var(--blanc); font-family: var(--font-display); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 100px; }
+    .add-to-cart:active { transform: scale(.95) !important; }
+    .product-tag { position: absolute; top: 1rem; left: 1rem; color: var(--blanc); font-family: var(--font-display); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 100px; }
+    .product-tag.nouveau { background: var(--orange); }
     .product-tag.bestseller { background: var(--violet); }
     .product-tag.exclusif { background: var(--rose); }
-    .product-info { padding: 1.25rem 1.25rem 1.5rem; }
-    .product-cat { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gris); margin-bottom: 6px; }
+    .product-info { padding: 1.25rem; }
+    .product-cat { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--gris); margin-bottom: 4px; }
     .product-name { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--noir); margin-bottom: 8px; }
-    .product-price { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; color: var(--noir); }
+    .product-price { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; }
 
+    /* ─── LOOKBOOK ──────────────────────────────────────────── */
     #lookbook { padding: 6rem 2.5rem; background: var(--noir); color: var(--blanc); }
     #lookbook .section-label { color: var(--lime); }
     #lookbook .section-title { color: var(--blanc); }
     .lookbook-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: auto auto; gap: 1rem; margin-top: 3rem; }
-    .lookbook-item { border-radius: 16px; overflow: hidden; position: relative; cursor: pointer; }
+    .lookbook-item { border-radius: 18px; overflow: hidden; position: relative; cursor: pointer; }
     .lookbook-item:first-child { grid-row: span 2; }
-    .lookbook-placeholder { width: 100%; height: 100%; min-height: 260px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 4rem; transition: transform 0.5s var(--ease); }
-    .lookbook-item:first-child .lookbook-placeholder { min-height: 540px; background: #141414; }
+    .lookbook-placeholder { width: 100%; height: 100%; min-height: 260px; background: #161616; display: flex; align-items: center; justify-content: center; font-size: 4rem; transition: transform .6s var(--spring); }
+    .lookbook-item:first-child .lookbook-placeholder { min-height: 520px; background: #111; }
     .lookbook-item:hover .lookbook-placeholder { transform: scale(1.04); }
-    .lookbook-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem 1.5rem 1.5rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); opacity: 0; transition: opacity 0.3s; }
+    .lookbook-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem 1.5rem 1.5rem; background: linear-gradient(transparent, rgba(0,0,0,.85)); opacity: 0; transition: opacity .35s; }
     .lookbook-item:hover .lookbook-caption { opacity: 1; }
     .lookbook-caption-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
     .lookbook-caption-price { font-size: 12px; color: var(--lime); font-weight: 600; }
 
-    #contact { padding: 6rem 2.5rem; background: var(--fond); }
+    /* ─── CONTACT ───────────────────────────────────────────── */
+    #contact { padding: 6rem 2.5rem; }
     .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
     .contact-intro { font-size: 14px; color: var(--gris); line-height: 1.9; margin-bottom: 2.5rem; max-width: 400px; }
     .contact-options { display: flex; flex-direction: column; gap: 1rem; }
-    .contact-btn { display: flex; align-items: center; gap: 1rem; padding: 1.25rem 1.5rem; background: var(--blanc); border: 1.5px solid var(--gris-clair); border-radius: 16px; text-decoration: none; color: var(--noir); transition: all 0.3s var(--ease-back); }
-    .contact-btn:hover { border-color: var(--violet); transform: translateX(4px); box-shadow: 0 8px 24px rgba(124,58,237,0.1); }
+    .contact-btn {
+      display: flex; align-items: center; gap: 1rem; padding: 1.25rem 1.5rem;
+      background: var(--blanc); border: 1.5px solid var(--gris-clair);
+      border-radius: 16px; text-decoration: none; color: var(--noir);
+      transition: border-color .25s, transform .4s var(--spring), box-shadow .3s;
+    }
+    .contact-btn:hover { border-color: var(--violet); transform: translateX(6px); box-shadow: 0 8px 28px rgba(124,58,237,.12); }
     .contact-btn-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-    .contact-btn-icon.whatsapp { background: #25D366; }
-    .contact-btn-icon.email { background: var(--violet); color: var(--blanc); font-family: var(--font-display); font-size: 16px; font-weight: 800; }
-    .contact-btn-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gris); margin-bottom: 2px; }
+    .contact-btn-icon.wa { background: #25D366; }
+    .contact-btn-icon.em { background: var(--violet); color: var(--blanc); font-family: var(--font-display); font-size: 16px; font-weight: 800; }
+    .contact-btn-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--gris); margin-bottom: 2px; }
     .contact-btn-main { font-size: 14px; font-weight: 500; }
-    .contact-btn-arrow { margin-left: auto; color: var(--gris); font-size: 18px; transition: transform 0.3s var(--ease); }
+    .contact-btn-arrow { margin-left: auto; color: var(--gris); font-size: 18px; transition: transform .35s var(--spring), color .25s; }
     .contact-btn:hover .contact-btn-arrow { transform: translateX(4px); color: var(--violet); }
     .contact-visual { background: var(--violet); border-radius: 24px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-    .contact-visual-text { font-family: var(--font-display); font-size: clamp(3rem, 6vw, 5rem); font-weight: 800; color: rgba(255,255,255,0.15); text-align: center; line-height: 1; letter-spacing: -0.04em; }
+    .contact-visual-text { font-family: var(--font-display); font-size: clamp(3rem, 5vw, 4.5rem); font-weight: 800; color: rgba(255,255,255,.12); text-align: center; line-height: 1; letter-spacing: -.04em; }
     .contact-visual-badge { position: absolute; background: var(--lime); color: var(--noir); font-family: var(--font-display); font-size: 13px; font-weight: 800; padding: 10px 20px; border-radius: 100px; }
 
+    /* ─── FOOTER ────────────────────────────────────────────── */
     footer { background: var(--noir); color: var(--blanc); padding: 4rem 2.5rem 2rem; }
     .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; padding-bottom: 3rem; border-bottom: 1px solid #1e1e1e; margin-bottom: 2rem; }
-    .footer-logo { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 1rem; }
+    .footer-logo { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: -.04em; margin-bottom: 1rem; }
     .footer-logo span { color: var(--lime); }
     .footer-tagline { font-size: 13px; color: #555; line-height: 1.8; max-width: 260px; }
-    .footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--lime); margin-bottom: 1.5rem; }
-    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
-    .footer-links a { color: #555; text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--lime); margin-bottom: 1.5rem; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: .75rem; }
+    .footer-links a { color: #555; text-decoration: none; font-size: 13px; transition: color .2s; }
     .footer-links a:hover { color: var(--blanc); }
-    .footer-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #333; }
+    .footer-bottom { display: flex; justify-content: space-between; font-size: 12px; color: #333; }
 
-    .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
-    .cart-overlay.open { opacity: 1; pointer-events: all; }
-    .cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; background: var(--blanc); z-index: 201; transform: translateX(100%); transition: transform 0.4s var(--ease); display: flex; flex-direction: column; border-radius: 20px 0 0 20px; }
-    .cart-drawer.open { transform: translateX(0); }
-    .cart-header { padding: 1.75rem 2rem; border-bottom: 1px solid var(--gris-clair); display: flex; justify-content: space-between; align-items: center; }
-    .cart-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; }
-    .cart-close { background: var(--fond); border: none; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--gris); transition: all 0.2s; }
-    .cart-close:hover { background: var(--noir); color: var(--blanc); }
-    .cart-items { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+    /* ═══════════════════════════════════════════════════════════
+       VAUL-STYLE CART DRAWER — Emil Kowalski
+       ─ drag-to-dismiss, spring snap, scale backdrop
+    ═══════════════════════════════════════════════════════════ */
+    .vaul-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0);
+      z-index: 200; pointer-events: none;
+      transition: background .4s;
+    }
+    .vaul-backdrop.open { background: rgba(0,0,0,.55); pointer-events: all; backdrop-filter: blur(6px); }
+
+    .vaul-drawer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 92vh; background: var(--blanc);
+      z-index: 201; border-radius: 28px 28px 0 0;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .5s var(--spring);
+      will-change: transform;
+      touch-action: none;
+      /* Desktop: side drawer */
+    }
+    @media (min-width: 600px) {
+      .vaul-drawer {
+        left: auto; right: 0; top: 0; bottom: 0;
+        width: 420px; height: 100%;
+        border-radius: 24px 0 0 24px;
+        transform: translateX(100%);
+      }
+      .vaul-drawer.open { transform: translateX(0); }
+    }
+    .vaul-drawer.open { transform: translateY(0); }
+
+    /* Drag handle */
+    .vaul-handle-wrap { padding: 12px; display: flex; justify-content: center; cursor: grab; user-select: none; }
+    .vaul-handle-wrap:active { cursor: grabbing; }
+    .vaul-handle { width: 36px; height: 4px; background: var(--gris-clair); border-radius: 2px; transition: background .2s, width .2s var(--spring); }
+    .vaul-handle-wrap:hover .vaul-handle { background: #bbb; width: 44px; }
+    @media (min-width: 600px) { .vaul-handle-wrap { display: none; } }
+
+    .cart-header { padding: 1.5rem 2rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--gris-clair); flex-shrink: 0; }
+    .cart-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; }
+    .cart-close {
+      background: rgba(0,0,0,.05); border: none; cursor: pointer;
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--gris);
+      transition: background .2s, transform .3s var(--spring), color .2s;
+    }
+    .cart-close:hover { background: var(--noir); color: var(--blanc); transform: rotate(90deg); }
+    .cart-items { flex: 1; overflow-y: auto; padding: 1.25rem 2rem; }
+    .cart-items::-webkit-scrollbar { width: 2px; }
+    .cart-items::-webkit-scrollbar-thumb { background: var(--gris-clair); }
+
     .cart-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--gris); text-align: center; gap: 1rem; }
-    .cart-empty-icon { font-size: 3rem; }
-    .cart-item { display: flex; gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid var(--gris-clair); }
-    .cart-item-img { width: 80px; height: 100px; background: var(--fond); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; }
+    .cart-empty-icon { font-size: 3rem; animation: float 3s ease-in-out infinite; }
+
+    .cart-item {
+      display: flex; gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid var(--gris-clair);
+      animation: slideIn .4s var(--spring) both;
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .cart-item-img { width: 80px; height: 100px; background: var(--fond); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; transition: transform .3s var(--spring); }
+    .cart-item:hover .cart-item-img { transform: scale(1.05); }
     .cart-item-info { flex: 1; }
-    .cart-item-name { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
-    .cart-item-size { font-size: 11px; color: var(--gris); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .cart-item-name { font-family: var(--font-display); font-size: .95rem; font-weight: 700; margin-bottom: 3px; }
+    .cart-item-size { font-size: 11px; color: var(--gris); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
     .cart-item-price { font-family: var(--font-display); font-size: 1rem; font-weight: 800; }
-    .cart-item-remove { background: none; border: none; cursor: pointer; color: var(--gris); font-size: 12px; transition: color 0.2s; }
+    .cart-item-remove { background: none; border: none; cursor: pointer; color: var(--gris); font-size: 12px; transition: color .2s; padding: 0; }
     .cart-item-remove:hover { color: var(--orange); }
     .cart-qty { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-    .qty-btn { background: var(--fond); border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--noir); transition: all 0.2s; }
-    .qty-btn:hover { background: var(--violet); color: var(--blanc); }
-    .qty-num { font-family: var(--font-display); font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; }
-    .cart-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--gris-clair); }
+    .qty-btn {
+      background: var(--fond); border: none; width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      font-size: 16px; color: var(--noir);
+      transition: background .2s, transform .3s var(--spring-fast);
+    }
+    .qty-btn:hover { background: var(--violet); color: var(--blanc); transform: scale(1.15); }
+    .qty-btn:active { transform: scale(.9); }
+    .qty-num { font-family: var(--font-display); font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; transition: transform .3s var(--spring); }
+    .qty-num.changed { transform: scale(1.3); }
+
+    .cart-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--gris-clair); flex-shrink: 0; }
     .cart-total { display: flex; justify-content: space-between; font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem; }
-    .cart-checkout { display: block; width: 100%; background: var(--violet); color: var(--blanc); border: none; font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 1rem; border-radius: 100px; cursor: pointer; transition: all 0.3s var(--ease-back); }
+    .cart-checkout {
+      display: block; width: 100%; background: var(--violet); color: var(--blanc); border: none;
+      font-family: var(--font-display); font-size: 14px; font-weight: 700;
+      padding: 1rem; border-radius: 100px; cursor: pointer;
+      transition: background .3s, transform .4s var(--spring);
+    }
     .cart-checkout:hover { background: var(--noir); transform: scale(1.02); }
+    .cart-checkout:active { transform: scale(.98); }
     .cart-checkout:disabled { background: var(--gris); cursor: not-allowed; transform: none; }
 
-    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--noir); color: var(--blanc); font-family: var(--font-display); font-size: 13px; font-weight: 600; padding: 12px 24px; border-radius: 100px; z-index: 300; transition: transform 0.4s var(--ease-back); pointer-events: none; border-left: 3px solid var(--lime); }
-    .toast.show { transform: translateX(-50%) translateY(0); }
+    /* ═══════════════════════════════════════════════════════════
+       SONNER-STYLE STACKED TOAST — Emil Kowalski
+    ═══════════════════════════════════════════════════════════ */
+    .sonner-region {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      z-index: 400; pointer-events: none;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0;
+      width: 340px;
+    }
+    /* Each toast is absolutely stacked with CSS custom props */
+    .sonner-toast {
+      --index: 0; --gap: 10px;
+      background: var(--noir); color: var(--blanc);
+      font-family: var(--font-display); font-size: 13px; font-weight: 600;
+      padding: 14px 18px; border-radius: 12px;
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 4px 24px rgba(0,0,0,.35);
+      position: absolute; bottom: 0; right: 0; width: 100%;
+      pointer-events: all; cursor: pointer;
+      transform-origin: bottom center;
+      /* Stacking: each older toast scales down and shifts up */
+      transform:
+        translateY(calc(var(--index) * -12px))
+        scale(calc(1 - var(--index) * 0.06));
+      transition:
+        transform .5s var(--spring),
+        opacity .4s,
+        box-shadow .3s;
+      opacity: calc(1 - var(--index) * 0.2);
+    }
+    .sonner-region:hover .sonner-toast {
+      transform:
+        translateY(calc(var(--index) * -56px))
+        scale(1);
+      opacity: 1;
+    }
+    .sonner-toast.entering {
+      animation: toastIn .5s var(--spring) forwards;
+    }
+    .sonner-toast.leaving {
+      animation: toastOut .4s var(--ease) forwards;
+    }
+    .sonner-toast-icon { font-size: 16px; flex-shrink: 0; }
+    .sonner-toast-text { flex: 1; }
+    .sonner-toast-close { background: none; border: none; color: rgba(255,255,255,.4); cursor: pointer; font-size: 16px; line-height: 1; padding: 0; transition: color .2s; }
+    .sonner-toast-close:hover { color: var(--blanc); }
+    .sonner-toast-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--lime); border-radius: 0 0 0 12px; animation: toastProgress 4s linear forwards; }
+    .sonner-toast .sonner-toast-bar { border-radius: 0 0 12px 12px; }
 
+    @keyframes toastIn { from { opacity: 0; transform: translateY(24px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateY(16px) scale(.9); } }
+    @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity .7s var(--spring), transform .7s var(--spring);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── KEYFRAMES ─────────────────────────────────────────── */
     @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(.8); } }
     @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
     @media (max-width: 900px) {
       nav { padding: 0 1.25rem; } .nav-links { display: none; }
-      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero { grid-template-columns: 1fr; }
       .hero-left { padding: 3rem 1.25rem; }
-      .hero-right { min-height: 50vw; }
+      .hero-right { min-height: 55vw; }
       #catalogue, #lookbook, #contact { padding: 4rem 1.25rem; }
       .lookbook-grid { grid-template-columns: 1fr 1fr; }
       .lookbook-item:first-child { grid-column: span 2; grid-row: span 1; }
       .contact-grid { grid-template-columns: 1fr; } .contact-visual { display: none; }
       .footer-top { grid-template-columns: 1fr; gap: 2rem; }
-      .cart-drawer { width: 100%; border-radius: 20px 20px 0 0; top: auto; height: 90vh; }
-      .section-header { flex-direction: column; align-items: flex-start; }
+      .sonner-region { left: 1rem; right: 1rem; width: auto; }
     }
   </style>
 </head>
 <body>
 
+<!-- ── CURSOR ─────────────────────────────────────────────── -->
 <div class="cursor" id="cursor"></div>
 
-<nav>
-  <a href="#" class="nav-logo">WearMarket <span>NEW</span></a>
+<!-- ── NAV ───────────────────────────────────────────────── -->
+<nav id="nav">
+  <a href="#" class="nav-logo">WearMarket <span class="nav-logo-badge">NEW</span></a>
   <ul class="nav-links">
     <li><a href="#catalogue">Collection</a></li>
     <li><a href="#lookbook">Lookbook</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <div class="nav-actions">
-    <button class="nav-cart" onclick="openCart()">Panier <span class="cart-count" id="cartCount">0</span></button>
+  <div class="nav-cart-wrap">
+    <button class="nav-cart" id="cartBtn" onclick="openCart()">
+      Panier <span class="cart-count" id="cartCount">0</span>
+    </button>
   </div>
 </nav>
 
+<!-- ── HERO ──────────────────────────────────────────────── -->
 <section class="hero" id="home">
   <div class="hero-left">
     <div class="hero-tag"><span class="hero-tag-dot"></span> Printemps · Été 2025</div>
@@ -235,6 +470,7 @@
   </div>
 </section>
 
+<!-- ── MARQUEE ────────────────────────────────────────────── -->
 <div class="marquee-wrap">
   <div class="marquee-track">
     <div class="marquee-item"><span class="marquee-dot"></span> Livraison rapide</div>
@@ -250,59 +486,63 @@
   </div>
 </div>
 
+<!-- ── CATALOGUE ──────────────────────────────────────────── -->
 <section id="catalogue">
-  <div class="section-header">
+  <div class="section-header reveal">
     <div><p class="section-label">La Collection</p><h2 class="section-title">Pièces essentielles</h2></div>
     <div class="filters">
-      <button class="filter-btn active" onclick="filterProducts(this, 'all')">Tout</button>
-      <button class="filter-btn" onclick="filterProducts(this, 'femme')">Femme</button>
-      <button class="filter-btn" onclick="filterProducts(this, 'homme')">Homme</button>
-      <button class="filter-btn" onclick="filterProducts(this, 'accessoires')">Accessoires</button>
+      <button class="filter-btn active" onclick="filterProducts(this,'all')">Tout</button>
+      <button class="filter-btn" onclick="filterProducts(this,'femme')">Femme</button>
+      <button class="filter-btn" onclick="filterProducts(this,'homme')">Homme</button>
+      <button class="filter-btn" onclick="filterProducts(this,'accessoires')">Accessoires</button>
     </div>
   </div>
   <div class="products-grid" id="productsGrid"></div>
 </section>
 
+<!-- ── LOOKBOOK ───────────────────────────────────────────── -->
 <section id="lookbook">
-  <div class="section-header">
+  <div class="section-header reveal">
     <div><p class="section-label">Lookbook</p><h2 class="section-title">WearMarket en image</h2></div>
-    <a href="#" class="btn-outline" style="border-color:#333;color:#999;">Voir tout</a>
+    <a href="#" class="btn-outline" style="border-color:#333;color:#888;">Voir tout</a>
   </div>
   <div class="lookbook-grid">
-    <div class="lookbook-item"><div class="lookbook-placeholder">👗</div><div class="lookbook-caption"><p class="lookbook-caption-title">Look du soir — Robe Lumière</p><p class="lookbook-caption-price">À partir de 189 €</p></div></div>
-    <div class="lookbook-item"><div class="lookbook-placeholder">🧥</div><div class="lookbook-caption"><p class="lookbook-caption-title">Veste Atelier</p><p class="lookbook-caption-price">245 €</p></div></div>
-    <div class="lookbook-item"><div class="lookbook-placeholder">👖</div><div class="lookbook-caption"><p class="lookbook-caption-title">Pantalon Ligne</p><p class="lookbook-caption-price">178 €</p></div></div>
-    <div class="lookbook-item"><div class="lookbook-placeholder">👔</div><div class="lookbook-caption"><p class="lookbook-caption-title">Chemise Soie</p><p class="lookbook-caption-price">134 €</p></div></div>
-    <div class="lookbook-item"><div class="lookbook-placeholder">👜</div><div class="lookbook-caption"><p class="lookbook-caption-title">Sac Grain de Cuir</p><p class="lookbook-caption-price">320 €</p></div></div>
+    <div class="lookbook-item reveal"><div class="lookbook-placeholder">👗</div><div class="lookbook-caption"><p class="lookbook-caption-title">Look du soir — Robe Lumière</p><p class="lookbook-caption-price">À partir de 189 €</p></div></div>
+    <div class="lookbook-item reveal" style="transition-delay:.1s"><div class="lookbook-placeholder">🧥</div><div class="lookbook-caption"><p class="lookbook-caption-title">Veste Atelier</p><p class="lookbook-caption-price">245 €</p></div></div>
+    <div class="lookbook-item reveal" style="transition-delay:.2s"><div class="lookbook-placeholder">👖</div><div class="lookbook-caption"><p class="lookbook-caption-title">Pantalon Ligne</p><p class="lookbook-caption-price">178 €</p></div></div>
+    <div class="lookbook-item reveal" style="transition-delay:.1s"><div class="lookbook-placeholder">👔</div><div class="lookbook-caption"><p class="lookbook-caption-title">Chemise Soie</p><p class="lookbook-caption-price">134 €</p></div></div>
+    <div class="lookbook-item reveal" style="transition-delay:.2s"><div class="lookbook-placeholder">👜</div><div class="lookbook-caption"><p class="lookbook-caption-title">Sac Grain de Cuir</p><p class="lookbook-caption-price">320 €</p></div></div>
   </div>
 </section>
 
+<!-- ── CONTACT ────────────────────────────────────────────── -->
 <section id="contact">
   <div class="contact-grid">
-    <div>
+    <div class="reveal">
       <p class="section-label">Nous contacter</p>
       <h2 class="section-title">Une question ?<br>On répond.</h2>
       <p class="contact-intro">Pour toute question sur une pièce, un conseil de style ou une commande personnalisée — notre équipe est là pour vous.</p>
       <div class="contact-options">
         <a href="https://wa.me/33600000000" class="contact-btn" target="_blank">
-          <div class="contact-btn-icon whatsapp"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+          <div class="contact-btn-icon wa"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
           <div><p class="contact-btn-label">WhatsApp</p><p class="contact-btn-main">+33 6 00 00 00 00</p></div>
           <span class="contact-btn-arrow">→</span>
         </a>
         <a href="mailto:contact@wearmarket.fr" class="contact-btn">
-          <div class="contact-btn-icon email">@</div>
+          <div class="contact-btn-icon em">@</div>
           <div><p class="contact-btn-label">Email</p><p class="contact-btn-main">contact@wearmarket.fr</p></div>
           <span class="contact-btn-arrow">→</span>
         </a>
       </div>
     </div>
-    <div class="contact-visual">
+    <div class="contact-visual reveal">
       <div class="contact-visual-text">Wear<br>Market</div>
       <div class="contact-visual-badge">On vous répond en 24h ✦</div>
     </div>
   </div>
 </section>
 
+<!-- ── FOOTER ─────────────────────────────────────────────── -->
 <footer>
   <div class="footer-top">
     <div>
@@ -330,179 +570,319 @@
   </div>
   <div class="footer-bottom">
     <span>© 2025 WearMarket · Tous droits réservés</span>
-    <span>Fait avec ❤️</span>
+    <span>Inspiré par emilkowal.ski ✦</span>
   </div>
 </footer>
 
-<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
-<div class="cart-drawer" id="cartDrawer">
+<!-- ── VAUL CART DRAWER ───────────────────────────────────── -->
+<div class="vaul-backdrop" id="backdrop" onclick="closeCart()"></div>
+<div class="vaul-drawer" id="cartDrawer" role="dialog" aria-label="Panier">
+  <!-- Drag handle (mobile) -->
+  <div class="vaul-handle-wrap" id="handleWrap">
+    <div class="vaul-handle"></div>
+  </div>
   <div class="cart-header">
     <h3 class="cart-title">Mon panier 🛍️</h3>
-    <button class="cart-close" onclick="closeCart()">×</button>
+    <button class="cart-close" onclick="closeCart()" aria-label="Fermer">×</button>
   </div>
   <div class="cart-items" id="cartItems">
     <div class="cart-empty">
       <div class="cart-empty-icon">🛒</div>
       <p style="font-size:14px;font-weight:500;">Votre panier est vide.</p>
-      <a href="#catalogue" class="btn-outline" onclick="closeCart()" style="font-size:13px;">Voir la collection</a>
+      <a href="#catalogue" class="btn-outline" onclick="closeCart()" style="font-size:13px;margin-top:.5rem;">Voir la collection</a>
     </div>
   </div>
-  <div class="cart-footer" id="cartFooter" style="display:none;">
+  <div class="cart-footer" id="cartFooter" style="display:none">
     <div class="cart-total"><span>Total</span><span id="cartTotal">0 €</span></div>
     <button class="cart-checkout" id="checkoutBtn" onclick="commander()">Commander →</button>
   </div>
 </div>
-<div class="toast" id="toast"></div>
 
+<!-- ── SONNER TOAST REGION ────────────────────────────────── -->
+<div class="sonner-region" id="sonnerRegion"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════ -->
 <script>
-  const cursor = document.getElementById('cursor');
-  document.addEventListener('mousemove', e => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
-  document.querySelectorAll('a, button, .product-card, .lookbook-item').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-  });
+/* ── Cursor ──────────────────────────────────────────────── */
+const cursor = document.getElementById('cursor');
+let mx = 0, my = 0, cx = 0, cy = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function animCursor() {
+  cx += (mx - cx) * 0.18; cy += (my - cy) * 0.18;
+  cursor.style.left = cx + 'px'; cursor.style.top = cy + 'px';
+  requestAnimationFrame(animCursor);
+})();
+document.addEventListener('mousedown', () => cursor.classList.add('click'));
+document.addEventListener('mouseup',   () => cursor.classList.remove('click'));
+document.querySelectorAll('a, button, .product-card, .lookbook-item').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+});
 
-  const produits = [
-    { id: 1, nom: 'Robe Lumière', categorie: 'femme', prix: 189, tag: 'Nouveau', desc: 'Femme · Robe', emoji: '👗' },
-    { id: 2, nom: 'Veste Atelier', categorie: 'femme', prix: 245, desc: 'Femme · Veste', emoji: '🧥' },
-    { id: 3, nom: 'Pantalon Ligne', categorie: 'femme', prix: 178, desc: 'Femme · Pantalon', emoji: '👖' },
-    { id: 4, nom: 'Manteau Crème', categorie: 'femme', prix: 390, tag: 'Bestseller', desc: 'Femme · Manteau', emoji: '🧥' },
-    { id: 5, nom: 'Chemise Soie', categorie: 'homme', prix: 134, desc: 'Homme · Chemise', emoji: '👔' },
-    { id: 6, nom: 'Costume Épuré', categorie: 'homme', prix: 520, tag: 'Nouveau', desc: 'Homme · Costume', emoji: '🤵' },
-    { id: 7, nom: 'Pull Cachemire', categorie: 'homme', prix: 210, desc: 'Homme · Pull', emoji: '🧶' },
-    { id: 8, nom: 'Sac Grain', categorie: 'accessoires', prix: 320, tag: 'Exclusif', desc: 'Accessoire · Sac', emoji: '👜' },
-  ];
+/* ── Magnetic cart button ─────────────────────────────────── */
+const cartBtn = document.getElementById('cartBtn');
+cartBtn.addEventListener('mousemove', e => {
+  const r = cartBtn.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2);
+  const dy = e.clientY - (r.top  + r.height / 2);
+  cartBtn.style.transform = `translate(${dx * .25}px, ${dy * .35}px)`;
+});
+cartBtn.addEventListener('mouseleave', () => { cartBtn.style.transform = ''; });
 
-  let panier = [];
+/* ── Nav scroll shadow ────────────────────────────────────── */
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
 
-  function getTagClass(tag) {
-    if (tag === 'Bestseller') return 'bestseller';
-    if (tag === 'Exclusif') return 'exclusif';
-    return '';
-  }
+/* ── Scroll reveal ────────────────────────────────────────── */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
-  function renderProduits(liste) {
-    document.getElementById('productsGrid').innerHTML = liste.map(p => `
-      <div class="product-card">
-        <div class="product-img">
-          <div class="product-placeholder">${p.emoji}</div>
-          ${p.tag ? `<div class="product-tag ${getTagClass(p.tag)}">${p.tag}</div>` : ''}
-          <div class="product-overlay">
-            <button class="add-to-cart" onclick="ajouterPanier(${p.id})">+ Ajouter au panier</button>
-          </div>
-        </div>
-        <div class="product-info">
-          <p class="product-cat">${p.desc}</p>
-          <p class="product-name">${p.nom}</p>
-          <p class="product-price">${p.prix} €</p>
+/* ── Products data ────────────────────────────────────────── */
+const produits = [
+  { id: 1, nom: 'Robe Lumière',   cat: 'femme',       prix: 189, tag: 'Nouveau',    desc: 'Femme · Robe',      emoji: '👗' },
+  { id: 2, nom: 'Veste Atelier',  cat: 'femme',       prix: 245, tag: null,         desc: 'Femme · Veste',     emoji: '🧥' },
+  { id: 3, nom: 'Pantalon Ligne', cat: 'femme',       prix: 178, tag: null,         desc: 'Femme · Pantalon',  emoji: '👖' },
+  { id: 4, nom: 'Manteau Crème',  cat: 'femme',       prix: 390, tag: 'Bestseller', desc: 'Femme · Manteau',   emoji: '🧥' },
+  { id: 5, nom: 'Chemise Soie',   cat: 'homme',       prix: 134, tag: null,         desc: 'Homme · Chemise',   emoji: '👔' },
+  { id: 6, nom: 'Costume Épuré',  cat: 'homme',       prix: 520, tag: 'Nouveau',    desc: 'Homme · Costume',   emoji: '🤵' },
+  { id: 7, nom: 'Pull Cachemire', cat: 'homme',       prix: 210, tag: null,         desc: 'Homme · Pull',      emoji: '🧶' },
+  { id: 8, nom: 'Sac Grain',      cat: 'accessoires', prix: 320, tag: 'Exclusif',   desc: 'Accessoire · Sac',  emoji: '👜' },
+];
+
+let panier = [];
+
+/* ── Render products ──────────────────────────────────────── */
+function tagClass(tag) { return tag ? tag.toLowerCase() : ''; }
+
+function renderProduits(liste) {
+  document.getElementById('productsGrid').innerHTML = liste.map((p, i) => `
+    <div class="product-card reveal" style="transition-delay:${i * 0.06}s">
+      <div class="product-img">
+        <div class="product-placeholder">${p.emoji}</div>
+        ${p.tag ? `<div class="product-tag ${tagClass(p.tag)}">${p.tag}</div>` : ''}
+        <div class="product-overlay">
+          <button class="add-to-cart" onclick="ajouterPanier(${p.id}, event)">+ Ajouter</button>
         </div>
       </div>
-    `).join('');
-    observeCards();
+      <div class="product-info">
+        <p class="product-cat">${p.desc}</p>
+        <p class="product-name">${p.nom}</p>
+        <p class="product-price">${p.prix} €</p>
+      </div>
+    </div>
+  `).join('');
+  // Re-observe new cards
+  document.querySelectorAll('.product-card.reveal').forEach(el => revealObs.observe(el));
+}
+
+renderProduits(produits);
+
+function filterProducts(btn, cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProduits(cat === 'all' ? produits : produits.filter(p => p.cat === cat));
+}
+
+/* ── Cart logic ───────────────────────────────────────────── */
+function ajouterPanier(id, e) {
+  if (e) e.stopPropagation();
+  const p = produits.find(x => x.id === id);
+  const exist = panier.find(x => x.id === id);
+  if (exist) exist.qty++; else panier.push({ ...p, qty: 1 });
+  updateCart();
+  bumpCartCount();
+  sonner(`${p.emoji} "${p.nom}" ajouté !`);
+  openCart();
+}
+
+function retirerPanier(id) {
+  panier = panier.filter(p => p.id !== id);
+  updateCart();
+}
+
+function changerQty(id, delta) {
+  const item = panier.find(p => p.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) retirerPanier(id);
+  else {
+    updateCart();
+    // Bounce the qty number
+    const numEl = document.getElementById(`qty-${id}`);
+    if (numEl) { numEl.classList.add('changed'); setTimeout(() => numEl.classList.remove('changed'), 400); }
   }
+}
 
-  renderProduits(produits);
-
-  function filterProducts(btn, cat) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderProduits(cat === 'all' ? produits : produits.filter(p => p.categorie === cat));
-  }
-
-  function ajouterPanier(id) {
-    const p = produits.find(p => p.id === id);
-    const exist = panier.find(p => p.id === id);
-    if (exist) exist.qty++; else panier.push({ ...p, qty: 1 });
-    updateCart(); showToast(`${p.emoji} "${p.nom}" ajouté !`); openCart();
-  }
-
-  function retirerPanier(id) { panier = panier.filter(p => p.id !== id); updateCart(); }
-
-  function changerQty(id, delta) {
-    const item = panier.find(p => p.id === id);
-    if (!item) return;
-    item.qty += delta;
-    if (item.qty <= 0) retirerPanier(id); else updateCart();
-  }
-
-  function updateCart() {
-    const total = panier.reduce((s, p) => s + p.prix * p.qty, 0);
-    const count = panier.reduce((s, p) => s + p.qty, 0);
-    document.getElementById('cartCount').textContent = count;
-    document.getElementById('cartTotal').textContent = total + ' €';
-    const itemsEl = document.getElementById('cartItems');
-    const footerEl = document.getElementById('cartFooter');
-    if (panier.length === 0) {
-      itemsEl.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p style="font-size:14px;font-weight:500;">Votre panier est vide.</p></div>`;
-      footerEl.style.display = 'none';
-    } else {
-      itemsEl.innerHTML = panier.map(p => `
-        <div class="cart-item">
-          <div class="cart-item-img">${p.emoji}</div>
-          <div class="cart-item-info">
-            <p class="cart-item-name">${p.nom}</p>
-            <p class="cart-item-size">Taille M</p>
-            <p class="cart-item-price">${p.prix * p.qty} €</p>
-            <div class="cart-qty">
-              <button class="qty-btn" onclick="changerQty(${p.id}, -1)">−</button>
-              <span class="qty-num">${p.qty}</span>
-              <button class="qty-btn" onclick="changerQty(${p.id}, 1)">+</button>
-              <button class="cart-item-remove" onclick="retirerPanier(${p.id})">Retirer</button>
-            </div>
+function updateCart() {
+  const total = panier.reduce((s, p) => s + p.prix * p.qty, 0);
+  const count = panier.reduce((s, p) => s + p.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = total + ' €';
+  const itemsEl  = document.getElementById('cartItems');
+  const footerEl = document.getElementById('cartFooter');
+  if (!panier.length) {
+    itemsEl.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <p style="font-size:14px;font-weight:500">Votre panier est vide.</p>
+      </div>`;
+    footerEl.style.display = 'none';
+  } else {
+    itemsEl.innerHTML = panier.map(p => `
+      <div class="cart-item">
+        <div class="cart-item-img">${p.emoji}</div>
+        <div class="cart-item-info">
+          <p class="cart-item-name">${p.nom}</p>
+          <p class="cart-item-size">Taille M</p>
+          <p class="cart-item-price">${p.prix * p.qty} €</p>
+          <div class="cart-qty">
+            <button class="qty-btn" onclick="changerQty(${p.id}, -1)">−</button>
+            <span class="qty-num" id="qty-${p.id}">${p.qty}</span>
+            <button class="qty-btn" onclick="changerQty(${p.id}, 1)">+</button>
+            <button class="cart-item-remove" onclick="retirerPanier(${p.id})">Retirer</button>
           </div>
         </div>
-      `).join('');
-      footerEl.style.display = 'block';
-    }
+      </div>`).join('');
+    footerEl.style.display = 'block';
   }
+}
 
-  async function commander() {
-    const btn = document.getElementById('checkoutBtn');
-    btn.textContent = 'Chargement...'; btn.disabled = true;
-    try {
-      const response = await fetch('/create-checkout-session', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ produits: panier })
-      });
-      const data = await response.json();
-      if (data.url) { window.location.href = data.url; }
-      else { throw new Error(data.error || 'Erreur inconnue'); }
-    } catch (err) {
-      alert('Erreur lors du paiement : ' + err.message);
-      btn.textContent = 'Commander →'; btn.disabled = false;
-    }
-  }
+/* ── Cart count bounce ────────────────────────────────────── */
+function bumpCartCount() {
+  const el = document.getElementById('cartCount');
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 500);
+}
 
-  function openCart() { document.getElementById('cartOverlay').classList.add('open'); document.getElementById('cartDrawer').classList.add('open'); }
-  function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); document.getElementById('cartDrawer').classList.remove('open'); }
-
-  let toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)'; } });
-  }, { threshold: 0.1 });
-
-  function observeCards() {
-    document.querySelectorAll('.product-card').forEach((el, i) => {
-      el.style.opacity = '0'; el.style.transform = 'translateY(32px)';
-      el.style.transition = `opacity 0.6s var(--ease) ${i * 0.07}s, transform 0.6s var(--ease) ${i * 0.07}s`;
-      observer.observe(el);
+/* ── Checkout ─────────────────────────────────────────────── */
+async function commander() {
+  const btn = document.getElementById('checkoutBtn');
+  btn.textContent = 'Chargement...'; btn.disabled = true;
+  try {
+    const res = await fetch('/create-checkout-session', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produits: panier })
     });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else throw new Error(data.error || 'Erreur inconnue');
+  } catch (err) {
+    sonner('⚠️ ' + err.message, 'error');
+    btn.textContent = 'Commander →'; btn.disabled = false;
   }
+}
 
-  document.querySelectorAll('.lookbook-item, .contact-btn').forEach((el, i) => {
-    el.style.opacity = '0'; el.style.transform = 'translateY(32px)';
-    el.style.transition = `opacity 0.6s var(--ease) ${i * 0.1}s, transform 0.6s var(--ease) ${i * 0.1}s`;
-    observer.observe(el);
-  });
+/* ═══════════════════════════════════════════════════════════
+   VAUL DRAWER — drag to dismiss (Emil Kowalski pattern)
+═══════════════════════════════════════════════════════════ */
+const drawer    = document.getElementById('cartDrawer');
+const backdrop  = document.getElementById('backdrop');
+const handleWrap = document.getElementById('handleWrap');
 
-  window.addEventListener('scroll', () => {
-    document.querySelector('nav').style.boxShadow = window.scrollY > 60 ? '0 4px 32px rgba(0,0,0,0.08)' : 'none';
+let dragging = false, startY = 0, currentY = 0, drawerOpen = false;
+
+function openCart() {
+  backdrop.classList.add('open');
+  drawer.classList.add('open');
+  drawerOpen = true;
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  backdrop.classList.remove('open');
+  drawer.classList.remove('open');
+  drawerOpen = false;
+  document.body.style.overflow = '';
+  drawer.style.transform = '';
+}
+
+/* Touch / mouse drag on handle (mobile) */
+function onDragStart(e) {
+  if (window.innerWidth >= 600) return;
+  dragging = true;
+  startY = (e.touches ? e.touches[0] : e).clientY;
+  drawer.style.transition = 'none';
+}
+function onDragMove(e) {
+  if (!dragging) return;
+  currentY = (e.touches ? e.touches[0] : e).clientY;
+  const dy = Math.max(0, currentY - startY);
+  drawer.style.transform = `translateY(${dy}px)`;
+  const progress = Math.min(dy / (window.innerHeight * 0.4), 1);
+  backdrop.style.background = `rgba(0,0,0,${0.55 * (1 - progress)})`;
+}
+function onDragEnd() {
+  if (!dragging) return;
+  dragging = false;
+  drawer.style.transition = '';
+  const dy = Math.max(0, currentY - startY);
+  if (dy > window.innerHeight * 0.22) { closeCart(); }
+  else { drawer.style.transform = ''; backdrop.style.background = ''; }
+}
+
+handleWrap.addEventListener('touchstart', onDragStart, { passive: true });
+handleWrap.addEventListener('mousedown',  onDragStart);
+window.addEventListener('touchmove',  onDragMove, { passive: true });
+window.addEventListener('mousemove',  e => dragging && onDragMove(e));
+window.addEventListener('touchend',   onDragEnd);
+window.addEventListener('mouseup',    onDragEnd);
+
+/* Keyboard close */
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && drawerOpen) closeCart(); });
+
+/* ═══════════════════════════════════════════════════════════
+   SONNER — stacked toast notifications (Emil Kowalski)
+═══════════════════════════════════════════════════════════ */
+const sonnerRegion = document.getElementById('sonnerRegion');
+const TOAST_DURATION = 4000;
+let toasts = [];
+
+function sonner(msg, type = 'success') {
+  const id = Date.now();
+  const el = document.createElement('div');
+  el.className = 'sonner-toast entering';
+  el.innerHTML = `
+    <span class="sonner-toast-icon">${type === 'error' ? '❌' : '✅'}</span>
+    <span class="sonner-toast-text">${msg}</span>
+    <button class="sonner-toast-close" onclick="dismissToast(${id})">×</button>
+    <div class="sonner-toast-bar"></div>
+  `;
+  el.dataset.id = id;
+  el.addEventListener('click', () => dismissToast(id));
+  toasts.push({ id, el });
+  sonnerRegion.appendChild(el);
+  stackToasts();
+  setTimeout(() => dismissToast(id), TOAST_DURATION);
+}
+
+function dismissToast(id) {
+  const idx = toasts.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const { el } = toasts[idx];
+  el.classList.remove('entering');
+  el.classList.add('leaving');
+  toasts.splice(idx, 1);
+  el.addEventListener('animationend', () => el.remove(), { once: true });
+  stackToasts();
+}
+
+function stackToasts() {
+  // Most recent = index 0 (front), older = higher index (behind/scaled)
+  const visible = [...sonnerRegion.querySelectorAll('.sonner-toast:not(.leaving)')];
+  visible.reverse().forEach((el, i) => {
+    el.style.setProperty('--index', i);
+    el.style.zIndex = 10 - i;
   });
+  // Position the container correctly
+  sonnerRegion.style.height = visible.length > 0
+    ? (60 + (visible.length - 1) * 12) + 'px'
+    : '0';
+}
+
 </script>
 </body>
 </html>
