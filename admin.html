@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0f0f0f" />
   <title>Medah Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,7 +11,6 @@
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --bg:      #0f0f0f;
       --surface: #1a1a1a;
@@ -27,11 +25,9 @@
       --display: 'Syne', sans-serif;
       --r:       16px;
     }
-
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; -webkit-font-smoothing: antialiased; }
     body { display: flex; flex-direction: column; min-height: 100dvh; overflow-x: hidden; }
 
-    /* ── HEADER ── */
     header {
       position: sticky; top: 0; z-index: 50;
       background: rgba(15,15,15,.9); backdrop-filter: blur(20px);
@@ -39,116 +35,87 @@
       padding: 0 1.5rem; height: 60px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .logo { font-family: var(--display); font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; }
+    .logo { font-family: var(--display); font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; display: flex; align-items: center; gap: 12px; }
     .logo span { color: var(--accent); }
+    .logo-back { font-size: 11px; font-weight: 500; color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 8px; background: rgba(255,255,255,.05); transition: color .2s, background .2s; }
+    .logo-back:hover { color: var(--text); background: rgba(255,255,255,.1); }
     .header-right { display: flex; align-items: center; gap: 12px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background .3s; }
     .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse-dot 2s infinite; }
     @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
     .status-label { font-size: 12px; color: var(--muted); }
 
-    /* ── SETUP BANNER ── */
-    #setupBanner {
-      margin: 1rem 1.5rem 0; padding: 1.2rem 1.4rem;
-      background: rgba(255,11,140,.08); border: 1px solid rgba(255,11,140,.25);
-      border-radius: var(--r); font-size: 13px; line-height: 1.8;
-    }
-    #setupBanner strong { color: var(--accent); font-weight: 600; }
-    #setupBanner code { background: rgba(255,255,255,.07); padding: 2px 7px; border-radius: 6px; font-size: 12px; font-family: monospace; }
-    #setupBanner.hidden { display: none; }
-
-    /* ── CONFIG FORM ── */
-    #configSection { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); }
-    #configSection summary { cursor: pointer; font-size: 13px; color: var(--muted); font-weight: 500; list-style: none; display: flex; align-items: center; gap: 8px; }
-    #configSection summary::before { content: '⚙️'; }
-    #configSection[open] summary::before { content: '⚙️'; }
-    .config-grid { display: grid; gap: 10px; margin-top: 1rem; }
-    .config-grid input { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: var(--font); font-size: 13px; width: 100%; }
-    .config-grid input:focus { outline: none; border-color: var(--accent); }
-    .config-grid input::placeholder { color: var(--muted); }
-    .btn-connect { margin-top: 10px; width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: filter .2s; }
-    .btn-connect:hover { filter: brightness(1.15); }
-
-    /* ── MAIN CONTENT ── */
     main { flex: 1; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto; width: 100%; }
 
-    /* ── ADD PRODUCT ── */
     .section-title { font-family: var(--display); font-size: 1rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .section-title::before { content: ''; width: 3px; height: 1rem; background: var(--accent); border-radius: 2px; display: block; }
 
-    .add-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.4rem;
-    }
+    .add-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.4rem; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field.full { grid-column: 1 / -1; }
     label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-    input, select, textarea {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-      padding: 11px 14px; color: var(--text); font-family: var(--font); font-size: 14px;
-      transition: border-color .2s;
-    }
+    input, select, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-family: var(--font); font-size: 14px; transition: border-color .2s; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
     input::placeholder, textarea::placeholder { color: var(--muted); }
     select option { background: var(--card); }
     textarea { resize: vertical; min-height: 70px; }
 
-    .photo-input-wrap { position: relative; }
-    .photo-preview {
-      width: 100%; height: 180px; border-radius: 12px; border: 2px dashed var(--border);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; transition: border-color .2s;
-      overflow: hidden; position: relative;
-    }
-    .photo-preview:hover { border-color: var(--accent); }
-    .photo-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
-    .photo-preview-icon { font-size: 2rem; }
-    .photo-preview input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    /* PHOTOS */
+    .photo-input-wrap { display: flex; gap: 8px; }
+    .photo-input-wrap input { flex: 1; }
+    .btn-add-photo { background: var(--accent2); color: #fff; border: none; border-radius: 10px; padding: 0 14px; font-size: 1.3rem; cursor: pointer; flex-shrink: 0; transition: filter .2s; }
+    .btn-add-photo:hover { filter: brightness(1.2); }
+    #photoPreviews { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .photo-thumb-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+    .photo-thumb-wrap img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; transition: border-color .2s; }
+    .photo-thumb-wrap img:hover { border-color: var(--accent2); }
+    .photo-thumb-del { position: absolute; top: -6px; right: -6px; background: #ff4444; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+    .photo-thumb-crop { position: absolute; bottom: -4px; right: -4px; background: var(--accent2); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+    .photo-help { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .photo-help strong { color: #60a5fa; }
+    .crop-done-badge { position: absolute; bottom: 18px; left: -4px; background: #7B2FD5; color: #fff; font-size: 9px; border-radius: 4px; padding: 1px 5px; }
 
-    .url-toggle { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; margin-top: 4px; }
+    /* SIZES */
+    .sizes-manager { display: flex; flex-direction: column; gap: 10px; }
+    .sizes-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+    .preset-btn { background: rgba(123,47,213,.12); color: var(--accent2); border: 1px solid rgba(123,47,213,.3); border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background .2s; }
+    .preset-btn:hover { background: rgba(123,47,213,.25); }
+    .sizes-tags { display: flex; flex-wrap: wrap; gap: 6px; min-height: 38px; padding: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; align-items: center; }
+    .size-tag { display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, rgba(255,11,140,.15), rgba(123,47,213,.15)); border: 1px solid rgba(123,47,213,.3); border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 600; color: var(--text); }
+    .size-tag button { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; line-height: 1; transition: color .2s; padding: 0; }
+    .size-tag button:hover { color: var(--accent); }
+    .size-custom-wrap { display: flex; gap: 6px; }
+    .size-custom-wrap input { flex: 1; padding: 8px 12px; font-size: 13px; }
+    .btn-add-size { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 0 12px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: filter .2s; }
+    .btn-add-size:hover { filter: brightness(1.15); }
+    .sizes-empty { font-size: 12px; color: var(--muted); font-style: italic; }
 
-    .btn-add {
-      width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff; border: none; border-radius: 12px; padding: 14px;
-      font-family: var(--font); font-size: 15px; font-weight: 700;
-      cursor: pointer; transition: transform .2s, box-shadow .2s; margin-top: 12px;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
+    .btn-add { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 12px; padding: 14px; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; transition: transform .2s, box-shadow .2s; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,11,140,.3); }
     .btn-add:active { transform: scale(.98); }
     .btn-add:disabled { opacity: .5; cursor: default; transform: none; box-shadow: none; }
 
-    /* ── PRODUCT LIST ── */
     .products-list { display: flex; flex-direction: column; gap: 10px; }
-    .prod-item {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-      transition: border-color .2s; position: relative; overflow: hidden;
-    }
+    .prod-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); display: flex; align-items: center; gap: 12px; padding: 12px 14px; transition: border-color .2s; position: relative; overflow: hidden; }
     .prod-item:hover { border-color: rgba(255,255,255,.2); }
-    .prod-thumb {
-      width: 60px; height: 72px; border-radius: 10px; flex-shrink: 0;
-      background: var(--card); display: flex; align-items: center; justify-content: center;
-      font-size: 1.8rem; overflow: hidden;
-    }
+    .prod-thumb { width: 60px; height: 72px; border-radius: 10px; flex-shrink: 0; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; overflow: hidden; }
     .prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .prod-body { flex: 1; min-width: 0; }
     .prod-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .prod-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .prod-price { font-size: 1rem; font-weight: 700; color: var(--accent); margin-top: 4px; }
     .prod-tag { display: inline-block; font-size: 10px; font-weight: 700; background: rgba(255,11,140,.15); color: var(--accent); border-radius: 6px; padding: 2px 7px; margin-top: 4px; }
+    .prod-sizes-preview { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+    .prod-size-chip { font-size: 10px; font-weight: 600; background: rgba(123,47,213,.15); color: #c084fc; border-radius: 5px; padding: 2px 6px; }
     .prod-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    .btn-edit, .btn-del {
-      border: none; border-radius: 8px; padding: 7px 12px;
-      font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: filter .2s;
-    }
+    .btn-edit, .btn-del { border: none; border-radius: 8px; padding: 7px 12px; font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: filter .2s; }
     .btn-edit { background: rgba(123,47,213,.2); color: #c084fc; }
     .btn-edit:hover { filter: brightness(1.3); }
     .btn-del { background: rgba(255,50,50,.1); color: #ff6b6b; }
     .btn-del:hover { filter: brightness(1.3); }
 
-    /* Edit mode inline */
     .prod-item.editing { border-color: var(--accent2); }
     .inline-edit { display: none; padding: 12px 0 0; flex-direction: column; gap: 8px; }
     .prod-item.editing .inline-edit { display: flex; }
@@ -158,42 +125,57 @@
     .inline-actions { display: flex; gap: 8px; }
     .btn-save { flex: 1; background: var(--green); color: #000; border: none; border-radius: 8px; padding: 9px; font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer; }
     .btn-cancel-edit { flex: 1; background: var(--card); color: var(--muted); border: none; border-radius: 8px; padding: 9px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; }
+    .inline-sizes-tags { display: flex; flex-wrap: wrap; gap: 5px; min-height: 32px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; align-items: center; }
+    .inline-size-add { display: flex; gap: 6px; }
+    .inline-size-add input { flex: 1; font-size: 12px; padding: 6px 10px; }
+    .inline-size-add button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 0 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); }
 
-    /* ── EMPTY STATE ── */
+    /* CROP MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 520px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .modal-title { font-family: var(--display); font-size: 1.1rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+    .modal-close { background: rgba(255,255,255,.08); border: none; color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 16px; }
+    .modal-close:hover { background: rgba(255,255,255,.15); }
+    .crop-container { position: relative; width: 100%; aspect-ratio: 3/4; background: #111; border-radius: 12px; overflow: hidden; cursor: grab; user-select: none; touch-action: none; }
+    .crop-container:active { cursor: grabbing; }
+    #cropImg { position: absolute; transform-origin: center center; will-change: transform; pointer-events: none; max-width: none; max-height: none; }
+    .crop-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 33.33% 33.33%; }
+    .crop-overlay { position: absolute; inset: 0; border: 2px solid rgba(255,255,255,.4); border-radius: 12px; pointer-events: none; }
+    .crop-ratios { display: flex; gap: 6px; }
+    .ratio-btn { flex: 1; background: rgba(255,255,255,.06); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 7px; font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s; text-align: center; }
+    .ratio-btn.active { background: rgba(123,47,213,.25); border-color: var(--accent2); color: var(--text); }
+    .crop-controls { display: flex; flex-direction: column; gap: 8px; }
+    .crop-slider-wrap { display: flex; align-items: center; gap: 10px; }
+    .crop-slider-label { font-size: 11px; color: var(--muted); font-weight: 600; min-width: 48px; }
+    .crop-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; outline: none; cursor: pointer; }
+    .crop-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+    .crop-slider-val { font-size: 11px; color: var(--text); font-weight: 600; min-width: 36px; text-align: right; }
+    .crop-actions { display: flex; gap: 8px; }
+    .btn-crop-reset { flex: 1; background: rgba(255,255,255,.07); color: var(--muted); border: none; border-radius: 10px; padding: 11px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-crop-apply { flex: 2; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 10px; padding: 11px; font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer; transition: filter .2s; }
+    .btn-crop-apply:hover { filter: brightness(1.1); }
+    .crop-preview-label { font-size: 11px; color: var(--muted); text-align: center; margin-top: -4px; }
+
     .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
     .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
     .empty-state p { font-size: 14px; }
-
-    /* ── LOADING SKELETON ── */
     .skeleton { background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,.05) 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-    /* ── TOAST ── */
     #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 10px 20px; font-size: 13px; font-weight: 600; z-index: 999; transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s; opacity: 0; white-space: nowrap; }
     #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     #toast.success { border-color: var(--green); color: var(--green); }
     #toast.error { border-color: #ff6b6b; color: #ff6b6b; }
 
-    /* ── NAV BOTTOM (mobile) ── */
     .bottom-nav { display: none; }
     @media (max-width: 600px) {
-      .bottom-nav {
-        display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-        background: rgba(15,15,15,.95); backdrop-filter: blur(20px);
-        border-top: 1px solid var(--border); height: 64px;
-        z-index: 40;
-      }
-      .bottom-nav a {
-        flex: 1; display: flex; flex-direction: column; align-items: center;
-        justify-content: center; gap: 3px; text-decoration: none; color: var(--muted);
-        font-size: 10px; font-weight: 600; letter-spacing: .04em; transition: color .2s;
-      }
+      .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,15,15,.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); height: 64px; z-index: 40; }
+      .bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .04em; transition: color .2s; }
       .bottom-nav a.active, .bottom-nav a:hover { color: var(--accent); }
       .bottom-nav a span { font-size: 1.3rem; }
       main { padding-bottom: 80px; }
     }
-
-    /* Panels for mobile tabs */
     .panel { display: block; }
     @media (max-width: 600px) {
       .panel { display: none; }
@@ -205,7 +187,10 @@
 <body>
 
 <header>
-  <div class="logo">Medah <span>Admin</span></div>
+  <div class="logo">
+    <a href="/" class="logo-back">← Boutique</a>
+    Medah <span>Admin</span>
+  </div>
   <div class="header-right">
     <div class="status-dot" id="statusDot"></div>
     <span class="status-label" id="statusLabel">Non connecté</span>
@@ -213,7 +198,7 @@
   </div>
 </header>
 
-<!-- ÉCRAN DE CONNEXION -->
+<!-- LOGIN -->
 <div id="loginScreen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:2rem;min-height:60dvh;gap:1.5rem">
   <div style="text-align:center;margin-bottom:.5rem">
     <div style="font-size:2.5rem;margin-bottom:.8rem">🔐</div>
@@ -228,10 +213,7 @@
       <input id="loginMdp" type="password" placeholder="Mot de passe" autocomplete="current-password"
         style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 48px 14px 16px;color:var(--text);font-family:var(--font);font-size:15px;width:100%"
         onkeydown="if(event.key==='Enter')seConnecter()" />
-      <button onclick="toggleMdp()" id="btnToggleMdp"
-        style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted);padding:4px">
-        👁️
-      </button>
+      <button onclick="toggleMdp()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted);padding:4px">👁️</button>
     </div>
     <button id="btnLogin" onclick="seConnecter()"
       style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
@@ -239,23 +221,23 @@
     </button>
   </div>
 </div>
-<!-- FIN ÉCRAN LOGIN -->
 
 <main id="mainContent" style="display:none">
-  <!-- ADD PANEL -->
   <div class="panel active" id="panelAjouter">
     <div class="add-card">
       <div class="section-title">Ajouter un produit</div>
       <div class="form-grid">
+
         <div class="field full">
           <label>Photos du produit (URLs)</label>
-          <div id="photoPreviews" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px">
-            <input id="photoUrl" placeholder="Colle une URL de photo (https://...)" style="flex:1" oninput="previewUrl(this.value)" />
-            <button type="button" onclick="ajouterPhoto()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:0 14px;font-size:1.2rem;cursor:pointer;flex-shrink:0">+</button>
+          <div id="photoPreviews"></div>
+          <div class="photo-input-wrap">
+            <input id="photoUrl" placeholder="Colle une URL de photo (https://...)" />
+            <button type="button" class="btn-add-photo" onclick="ajouterPhoto()">+</button>
           </div>
-          <div style="font-size:11px;color:var(--muted);margin-top:5px">💡 Utilise <strong style="color:#60a5fa">Cloudinary.com</strong> (gratuit) pour héberger tes photos</div>
+          <p class="photo-help">💡 Utilise <strong>Cloudinary.com</strong> (gratuit) — clique sur une miniature pour recadrer ✂️</p>
         </div>
+
         <div class="field">
           <label>Nom du produit</label>
           <input id="nom" placeholder="Ex: Robe Lumière" />
@@ -287,22 +269,42 @@
           <input id="desc" placeholder="Ex: Femme · Robe de soirée" />
         </div>
         <div class="field full">
-          <label>Tailles disponibles (séparées par une virgule)</label>
-          <input id="tailles" placeholder="Ex: XS, S, M, L, XL ou 36, 38, 40, 42" />
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">Laisse vide pour les tailles standard (XS à XL)</div>
+          <label>Description détaillée (page produit)</label>
+          <textarea id="descLong" placeholder="Ex: Robe en soie italienne, coupe fluide..."></textarea>
         </div>
+
+        <!-- TAILLES -->
         <div class="field full">
-          <label>Description détaillée (affichée sur la fiche produit)</label>
-          <textarea id="descLong" placeholder="Ex: Robe en soie italienne, coupe fluide, idéale pour les soirées..." style="min-height:80px"></textarea>
+          <label>Tailles disponibles</label>
+          <div class="sizes-manager">
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Préréglages rapides :</div>
+              <div class="sizes-presets">
+                <button class="preset-btn" onclick="applyPreset(['XS','S','M','L','XL','XXL'])">XS → XXL</button>
+                <button class="preset-btn" onclick="applyPreset(['S','M','L','XL'])">S → XL</button>
+                <button class="preset-btn" onclick="applyPreset(['36','37','38','39','40','41','42','43','44','45'])">Pointures</button>
+                <button class="preset-btn" onclick="applyPreset(['38','40','42','44','46'])">Tailles FR</button>
+                <button class="preset-btn" onclick="applyPreset([])">Taille unique</button>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Tailles sélectionnées :</div>
+              <div class="sizes-tags" id="sizesTags">
+                <span class="sizes-empty">Aucune taille — choisis un préréglage ou ajoutes-en une</span>
+              </div>
+            </div>
+            <div class="size-custom-wrap">
+              <input id="sizeInput" placeholder="Ex: S, M, L, 42, 3XL..." onkeydown="if(event.key==='Enter')addSizeFromInput()" />
+              <button class="btn-add-size" onclick="addSizeFromInput()">+ Ajouter</button>
+            </div>
+          </div>
         </div>
+
       </div>
-      <button class="btn-add" id="btnAdd" onclick="ajouterProduit()">
-        ✨ Ajouter le produit
-      </button>
+      <button class="btn-add" id="btnAdd" onclick="ajouterProduit()">✨ Ajouter le produit</button>
     </div>
   </div>
 
-  <!-- PRODUCTS PANEL -->
   <div class="panel" id="panelProduits">
     <div>
       <div class="section-title">Produits en ligne (<span id="prodCount">0</span>)</div>
@@ -315,104 +317,109 @@
   </div>
 </main>
 
-<!-- BOTTOM NAV (mobile only) -->
 <nav class="bottom-nav" id="bottomNav" style="display:none">
-  <a href="#" onclick="switchPanel('panelAjouter',this)" class="active" id="navAjouter">
-    <span>➕</span>AJOUTER
-  </a>
-  <a href="#" onclick="switchPanel('panelProduits',this)" id="navProduits">
-    <span>👗</span>PRODUITS
-  </a>
+  <a href="#" onclick="switchPanel('panelAjouter',this)" class="active" id="navAjouter"><span>➕</span>AJOUTER</a>
+  <a href="#" onclick="switchPanel('panelProduits',this)" id="navProduits"><span>👗</span>PRODUITS</a>
 </nav>
+
+<!-- CROP MODAL -->
+<div class="modal-overlay" id="cropModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>✂️ Recadrer l'image</span>
+      <button class="modal-close" onclick="closeCrop()">×</button>
+    </div>
+    <div class="crop-ratios">
+      <button class="ratio-btn active" onclick="setRatio(3,4,this)">3:4 Portrait</button>
+      <button class="ratio-btn" onclick="setRatio(1,1,this)">1:1 Carré</button>
+      <button class="ratio-btn" onclick="setRatio(4,3,this)">4:3 Paysage</button>
+    </div>
+    <div class="crop-container" id="cropContainer">
+      <img id="cropImg" src="" alt="" />
+      <div class="crop-grid"></div>
+      <div class="crop-overlay"></div>
+    </div>
+    <p class="crop-preview-label">Glisse pour déplacer · Molette / slider pour zoomer</p>
+    <div class="crop-controls">
+      <div class="crop-slider-wrap">
+        <span class="crop-slider-label">🔍 Zoom</span>
+        <input type="range" class="crop-slider" id="zoomSlider" min="50" max="300" value="100" oninput="onZoomSlider(this.value)" />
+        <span class="crop-slider-val" id="zoomVal">100%</span>
+      </div>
+      <div class="crop-slider-wrap">
+        <span class="crop-slider-label">↔ X</span>
+        <input type="range" class="crop-slider" id="xSlider" min="-300" max="300" value="0" oninput="onXSlider(this.value)" />
+        <span class="crop-slider-val" id="xVal">0px</span>
+      </div>
+      <div class="crop-slider-wrap">
+        <span class="crop-slider-label">↕ Y</span>
+        <input type="range" class="crop-slider" id="ySlider" min="-300" max="300" value="0" oninput="onYSlider(this.value)" />
+        <span class="crop-slider-val" id="yVal">0px</span>
+      </div>
+    </div>
+    <div class="crop-actions">
+      <button class="btn-crop-reset" onclick="resetCrop()">↺ Réinitialiser</button>
+      <button class="btn-crop-apply" onclick="applyCrop()">✅ Appliquer le recadrage</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
-<!-- FIREBASE -->
 <script type="module">
 import { initializeApp }              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, query, orderBy }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-let db, storage, auth, unsubscribe;
-let photosArray = []; // tableau des URLs photos
-
-window.toggleMdp = function() {
-  const inp = document.getElementById('loginMdp');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+const cfg = {
+  apiKey:            "AIzaSyAi6zx44988VL26AkIh6bY_AV6UOJ2zBgk",
+  authDomain:        "theproject-19668.firebaseapp.com",
+  projectId:         "theproject-19668",
+  storageBucket:     "theproject-19668.firebasestorage.app",
+  messagingSenderId: "621072101301",
+  appId:             "1:621072101301:web:7fc5ddc238725c9b6b73fc",
 };
 
-window.ajouterPhoto = function() {
-  const url = document.getElementById('photoUrl').value.trim();
-  if (!url || !url.startsWith('http')) { toast('⚠️ URL invalide', 'error'); return; }
-  if (photosArray.includes(url)) { toast('⚠️ Photo déjà ajoutée', 'error'); return; }
-  photosArray.push(url);
-  document.getElementById('photoUrl').value = '';
-  renderPhotoPreviews();
+let db, auth, unsubscribe;
+let photosArray  = [];
+let cropDataArr  = [];
+let selectedSizes = [];
+let currentCropIdx = null;
+let editSizes = {};
+
+/* ── AUTH ── */
+window.toggleMdp = () => {
+  const i = document.getElementById('loginMdp');
+  i.type = i.type === 'password' ? 'text' : 'password';
 };
 
-function renderPhotoPreviews() {
-  const el = document.getElementById('photoPreviews');
-  el.innerHTML = photosArray.map((url, i) => `
-    <div style="position:relative;width:80px;height:80px;flex-shrink:0">
-      <img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid var(--border)" onerror="this.style.opacity='.3'" />
-      <button onclick="supprimerPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#ff4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
-    </div>
-  `).join('');
-}
-window.supprimerPhoto = function(i) { photosArray.splice(i,1); renderPhotoPreviews(); };
+(async () => {
+  const app = initializeApp(cfg);
+  db   = getFirestore(app);
+  auth = getAuth(app);
+  onAuthStateChanged(auth, user => {
+    const show = el => document.getElementById(el).style.display = '';
+    const hide = el => document.getElementById(el).style.display = 'none';
+    if (user) {
+      hide('loginScreen'); show('mainContent'); show('bottomNav');
+      document.getElementById('statusDot').classList.add('connected');
+      document.getElementById('statusLabel').textContent = user.email;
+      document.getElementById('btnLogout').style.display = 'block';
+      listenProduits();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      hide('mainContent'); hide('bottomNav');
+      document.getElementById('statusDot').classList.remove('connected');
+      document.getElementById('statusLabel').textContent = 'Non connecté';
+      hide('btnLogout');
+      if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    }
+  });
+})();
 
-window.previewUrl = function(url) {
-  // juste un feedback visuel live — le vrai ajout se fait via le bouton +
-};
-
-/* ── Saved config ── */
-// Connexion Firebase automatique au chargement
-window.connectFirebase = async function() {
-  const cfg = {
-    apiKey:            "AIzaSyAi6zx44988VL26AkIh6bY_AV6UOJ2zBgk",
-    authDomain:        "theproject-19668.firebaseapp.com",
-    projectId:         "theproject-19668",
-    storageBucket:     "theproject-19668.firebasestorage.app",
-    messagingSenderId: "621072101301",
-    appId:             "1:621072101301:web:7fc5ddc238725c9b6b73fc",
-  };
-  try {
-    const app = initializeApp(cfg);
-    db      = getFirestore(app);
-    storage = getStorage(app);
-    auth    = getAuth(app);
-
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainContent').style.display = '';
-        document.getElementById('bottomNav').style.display   = '';
-        document.getElementById('statusDot').classList.add('connected');
-        document.getElementById('statusLabel').textContent   = user.email;
-        document.getElementById('btnLogout').style.display   = 'block';
-        listenProduits();
-      } else {
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('mainContent').style.display = 'none';
-        document.getElementById('bottomNav').style.display   = 'none';
-        document.getElementById('statusDot').classList.remove('connected');
-        document.getElementById('statusLabel').textContent   = 'Non connecté';
-        document.getElementById('btnLogout').style.display   = 'none';
-        if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-      }
-    });
-  } catch(e) { console.error('Erreur Firebase', e); }
-};
-
-// Lancement automatique
-connectFirebase();
-
-window.seConnecter = async function() {
-  if (!auth) { toast('⚠️ Erreur de connexion Firebase', 'error'); return; }
+window.seConnecter = async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const mdp   = document.getElementById('loginMdp').value;
   const btn   = document.getElementById('btnLogin');
@@ -422,25 +429,139 @@ window.seConnecter = async function() {
     await signInWithEmailAndPassword(auth, email, mdp);
     toast('✅ Connecté !', 'success');
   } catch(e) {
-    const msgs = {
-      'auth/invalid-credential': 'Email ou mot de passe incorrect',
-      'auth/user-not-found':     'Aucun compte avec cet email',
-      'auth/wrong-password':     'Mot de passe incorrect',
-      'auth/too-many-requests':  'Trop de tentatives, réessaie plus tard',
-    };
+    const msgs = { 'auth/invalid-credential':'Email ou mot de passe incorrect', 'auth/too-many-requests':'Trop de tentatives' };
     toast('❌ ' + (msgs[e.code] || e.message), 'error');
   } finally { btn.disabled = false; btn.textContent = 'Se connecter →'; }
 };
+window.seDeconnecter = async () => { if (auth) await signOut(auth); };
 
-window.seDeconnecter = async function() {
-  if (auth) await signOut(auth);
+/* ── PHOTOS ── */
+window.ajouterPhoto = () => {
+  const url = document.getElementById('photoUrl').value.trim();
+  if (!url || !url.startsWith('http')) { toast('⚠️ URL invalide', 'error'); return; }
+  if (photosArray.includes(url)) { toast('⚠️ Déjà ajoutée', 'error'); return; }
+  photosArray.push(url);
+  cropDataArr.push(null);
+  document.getElementById('photoUrl').value = '';
+  renderPreviews();
 };
 
+function renderPreviews() {
+  document.getElementById('photoPreviews').innerHTML = photosArray.map((url, i) => `
+    <div class="photo-thumb-wrap">
+      <img src="${url}" onerror="this.style.opacity='.3'" onclick="openCrop(${i})" />
+      <button class="photo-thumb-del" onclick="delPhoto(${i})">×</button>
+      <button class="photo-thumb-crop" onclick="openCrop(${i})">✂️</button>
+      ${cropDataArr[i] ? '<div class="crop-done-badge">✂ Recadré</div>' : ''}
+    </div>`).join('');
+}
+window.delPhoto = i => { photosArray.splice(i,1); cropDataArr.splice(i,1); renderPreviews(); };
+
+/* ── SIZES (form) ── */
+window.applyPreset = sizes => { selectedSizes = [...sizes]; renderSizesTags(); };
+window.addSizeFromInput = () => {
+  const val = document.getElementById('sizeInput').value.trim();
+  if (!val) return;
+  val.split(/[,;\s]+/).map(s=>s.trim()).filter(Boolean)
+     .forEach(s => { if (!selectedSizes.includes(s)) selectedSizes.push(s); });
+  document.getElementById('sizeInput').value = '';
+  renderSizesTags();
+};
+window.removeSize = s => { selectedSizes = selectedSizes.filter(x=>x!==s); renderSizesTags(); };
+function renderSizesTags() {
+  const el = document.getElementById('sizesTags');
+  el.innerHTML = selectedSizes.length
+    ? selectedSizes.map(s=>`<span class="size-tag">${s}<button onclick="removeSize('${s}')">×</button></span>`).join('')
+    : '<span class="sizes-empty">Aucune taille — taille unique</span>';
+}
+
+/* ── SIZES (edit) ── */
+window.addEditSize = id => {
+  const val = document.getElementById('editSizeInput-'+id).value.trim();
+  if (!val) return;
+  if (!editSizes[id]) editSizes[id] = [];
+  val.split(/[,;\s]+/).map(s=>s.trim()).filter(Boolean)
+     .forEach(s=>{ if (!editSizes[id].includes(s)) editSizes[id].push(s); });
+  document.getElementById('editSizeInput-'+id).value = '';
+  renderEditSizes(id);
+};
+window.removeEditSize = (id, s) => { editSizes[id] = (editSizes[id]||[]).filter(x=>x!==s); renderEditSizes(id); };
+function renderEditSizes(id) {
+  const el = document.getElementById('editSizesTags-'+id);
+  if (!el) return;
+  const sizes = editSizes[id] || [];
+  el.innerHTML = sizes.length
+    ? sizes.map(s=>`<span class="size-tag" style="font-size:11px">${s}<button onclick="removeEditSize('${id}','${s}')">×</button></span>`).join('')
+    : '<span class="sizes-empty">Taille unique</span>';
+}
+
+/* ── CROP ── */
+let cropState = { scale:1, x:0, y:0, ratio:3/4 };
+let cropDragging=false, cropSX=0, cropSY=0, cropIX=0, cropIY=0;
+
+window.openCrop = i => {
+  currentCropIdx = i;
+  const ex = cropDataArr[i];
+  cropState = ex ? {...ex} : { scale:1, x:0, y:0, ratio:ex?.ratio||3/4 };
+  document.getElementById('cropImg').src = photosArray[i];
+  setRatioCSS(cropState.ratio);
+  applyCropTransform();
+  syncSliders();
+  document.getElementById('cropModal').classList.add('open');
+};
+window.closeCrop = () => { document.getElementById('cropModal').classList.remove('open'); currentCropIdx = null; };
+
+window.setRatio = (w, h, btn) => {
+  cropState.ratio = w/h;
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setRatioCSS(cropState.ratio);
+};
+function setRatioCSS(r) { document.getElementById('cropContainer').style.aspectRatio = r; }
+
+function applyCropTransform() {
+  const img = document.getElementById('cropImg');
+  img.style.top = '50%'; img.style.left = '50%';
+  img.style.transform = `translate(-50%,-50%) translate(${cropState.x}px,${cropState.y}px) scale(${cropState.scale})`;
+}
+function syncSliders() {
+  document.getElementById('zoomSlider').value = Math.round(cropState.scale*100);
+  document.getElementById('zoomVal').textContent = Math.round(cropState.scale*100)+'%';
+  document.getElementById('xSlider').value = Math.round(cropState.x);
+  document.getElementById('xVal').textContent = Math.round(cropState.x)+'px';
+  document.getElementById('ySlider').value = Math.round(cropState.y);
+  document.getElementById('yVal').textContent = Math.round(cropState.y)+'px';
+}
+window.onZoomSlider = v => { cropState.scale=v/100; document.getElementById('zoomVal').textContent=v+'%'; applyCropTransform(); };
+window.onXSlider = v => { cropState.x=+v; document.getElementById('xVal').textContent=v+'px'; applyCropTransform(); };
+window.onYSlider = v => { cropState.y=+v; document.getElementById('yVal').textContent=v+'px'; applyCropTransform(); };
+window.resetCrop = () => { cropState={scale:1,x:0,y:0,ratio:cropState.ratio}; syncSliders(); applyCropTransform(); };
+window.applyCrop = () => {
+  if (currentCropIdx===null) return;
+  cropDataArr[currentCropIdx] = {...cropState};
+  renderPreviews();
+  closeCrop();
+  toast('✅ Recadrage appliqué !', 'success');
+};
+
+// Mouse drag
+const cc = document.getElementById('cropContainer');
+cc.addEventListener('mousedown', e => { cropDragging=true; cropSX=e.clientX; cropSY=e.clientY; cropIX=cropState.x; cropIY=cropState.y; });
+window.addEventListener('mousemove', e => { if(!cropDragging)return; cropState.x=cropIX+(e.clientX-cropSX); cropState.y=cropIY+(e.clientY-cropSY); applyCropTransform(); syncSliders(); });
+window.addEventListener('mouseup', ()=>{ cropDragging=false; });
+// Touch drag
+cc.addEventListener('touchstart', e=>{ cropDragging=true; cropSX=e.touches[0].clientX; cropSY=e.touches[0].clientY; cropIX=cropState.x; cropIY=cropState.y; },{passive:true});
+cc.addEventListener('touchmove', e=>{ if(!cropDragging)return; cropState.x=cropIX+(e.touches[0].clientX-cropSX); cropState.y=cropIY+(e.touches[0].clientY-cropSY); applyCropTransform(); syncSliders(); },{passive:true});
+cc.addEventListener('touchend', ()=>{ cropDragging=false; });
+// Wheel zoom
+cc.addEventListener('wheel', e=>{ e.preventDefault(); cropState.scale=Math.min(3,Math.max(0.5,cropState.scale+(e.deltaY>0?-0.05:0.05))); applyCropTransform(); syncSliders(); },{passive:false});
+
+/* ── FIRESTORE ── */
 function listenProduits() {
   if (unsubscribe) unsubscribe();
-  const q = query(collection(db, 'produits'), orderBy('createdAt', 'desc'));
+  const q = query(collection(db,'produits'), orderBy('createdAt','desc'));
   unsubscribe = onSnapshot(q, snap => {
-    const produits = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    const produits = snap.docs.map(d=>({_id:d.id,...d.data()}));
     renderList(produits);
     document.getElementById('prodCount').textContent = produits.length;
   });
@@ -449,158 +570,141 @@ function listenProduits() {
 function renderList(produits) {
   const el = document.getElementById('productsList');
   if (!produits.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🛍️</div><p>Aucun produit pour l'instant.<br>Ajoute ton premier produit !</p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🛍️</div><p>Aucun produit.<br>Ajoute ton premier !</p></div>`;
     return;
   }
-  el.innerHTML = produits.map(p => `
+  el.innerHTML = produits.map(p => {
+    const tailles = p.tailles || [];
+    const taillesJson = JSON.stringify(tailles).replace(/"/g,"'");
+    return `
     <div class="prod-item" id="item-${p._id}">
-      <div class="prod-thumb">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.nom}" />` : (p.emoji || '👗')}
-      </div>
+      <div class="prod-thumb">${p.imageUrl?`<img src="${p.imageUrl}" alt="${p.nom}" />`:(p.emoji||'👗')}</div>
       <div class="prod-body">
         <div class="prod-name">${p.nom}</div>
-        <div class="prod-meta">${p.desc || ''} · ${p.cat}</div>
+        <div class="prod-meta">${p.desc||''} · ${p.cat}</div>
         <div class="prod-price">${p.prix} €</div>
-        ${p.tag ? `<div class="prod-tag">${p.tag}</div>` : ''}
-
-        <!-- Inline edit form -->
+        ${p.tag?`<div class="prod-tag">${p.tag}</div>`:''}
+        ${tailles.length?`<div class="prod-sizes-preview">${tailles.map(t=>`<span class="prod-size-chip">${t}</span>`).join('')}</div>`:''}
         <div class="inline-edit" id="edit-${p._id}">
           <div class="inline-grid">
             <input id="edit-nom-${p._id}"  value="${p.nom}"  placeholder="Nom" />
             <input id="edit-prix-${p._id}" value="${p.prix}" placeholder="Prix" type="number" />
-            <input id="edit-desc-${p._id}" value="${p.desc || ''}" placeholder="Description" />
+            <input id="edit-desc-${p._id}" value="${p.desc||''}" placeholder="Description" />
             <select id="edit-tag-${p._id}">
               <option value="">Aucun badge</option>
-              <option value="Nouveau"    ${p.tag==='Nouveau'    ?'selected':''}>Nouveau</option>
-              <option value="Bestseller" ${p.tag==='Bestseller' ?'selected':''}>Bestseller</option>
-              <option value="Exclusif"   ${p.tag==='Exclusif'   ?'selected':''}>Exclusif</option>
-              <option value="Soldes"     ${p.tag==='Soldes'     ?'selected':''}>Soldes</option>
+              <option value="Nouveau"    ${p.tag==='Nouveau'   ?'selected':''}>Nouveau</option>
+              <option value="Bestseller" ${p.tag==='Bestseller'?'selected':''}>Bestseller</option>
+              <option value="Exclusif"   ${p.tag==='Exclusif'  ?'selected':''}>Exclusif</option>
+              <option value="Soldes"     ${p.tag==='Soldes'    ?'selected':''}>Soldes</option>
             </select>
-            <input id="edit-img-${p._id}" value="${p.imageUrl||''}" placeholder="URL image (optionnel)" style="grid-column:1/-1" />
+            <input id="edit-img-${p._id}" value="${p.imageUrl||''}" placeholder="URL image" style="grid-column:1/-1" />
+            <div style="grid-column:1/-1">
+              <label style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:5px">Tailles</label>
+              <div class="inline-sizes-tags" id="editSizesTags-${p._id}"></div>
+              <div class="inline-size-add" style="margin-top:6px">
+                <input id="editSizeInput-${p._id}" placeholder="Ajouter taille (S, 42...)" onkeydown="if(event.key==='Enter')addEditSize('${p._id}')" />
+                <button onclick="addEditSize('${p._id}')">+</button>
+              </div>
+            </div>
           </div>
           <div class="inline-actions">
-            <button class="btn-save"        onclick="sauvegarder('${p._id}')">💾 Sauvegarder</button>
+            <button class="btn-save" onclick="sauvegarder('${p._id}')">💾 Sauvegarder</button>
             <button class="btn-cancel-edit" onclick="cancelEdit('${p._id}')">Annuler</button>
           </div>
         </div>
       </div>
       <div class="prod-actions">
-        <button class="btn-edit" onclick="toggleEdit('${p._id}')">✏️ Édit</button>
+        <button class="btn-edit" onclick="toggleEdit('${p._id}',${taillesJson})">✏️ Édit</button>
         <button class="btn-del"  onclick="supprimer('${p._id}','${p.nom}')">🗑️</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-window.toggleEdit = function(id) {
+window.toggleEdit = (id, tailles) => {
   const item = document.getElementById('item-'+id);
-  const form = document.getElementById('edit-'+id);
   item.classList.toggle('editing');
-};
-window.cancelEdit = function(id) {
-  document.getElementById('item-'+id).classList.remove('editing');
-};
-
-window.sauvegarder = async function(id) {
-  const data = {
-    nom:      document.getElementById('edit-nom-'+id).value.trim(),
-    prix:     Number(document.getElementById('edit-prix-'+id).value),
-    desc:     document.getElementById('edit-desc-'+id).value.trim(),
-    tag:      document.getElementById('edit-tag-'+id).value || null,
-    imageUrl: document.getElementById('edit-img-'+id).value.trim() || null,
-  };
-  if (!data.nom || !data.prix) { toast('⚠️ Nom et prix requis', 'error'); return; }
-  await updateDoc(doc(db, 'produits', id), data);
-  document.getElementById('item-'+id).classList.remove('editing');
-  toast('✅ Produit mis à jour !', 'success');
-};
-
-window.supprimer = async function(id, nom) {
-  if (!confirm(`Supprimer "${nom}" ?`)) return;
-  await deleteDoc(doc(db, 'produits', id));
-  toast(`🗑️ "${nom}" supprimé`, 'success');
-};
-
-window.previewUrl = function(url) {
-  const img = document.getElementById('photoPreviewImg');
-  const placeholder = document.getElementById('photoPreviewPlaceholder');
-  if (url && url.startsWith('http')) {
-    img.src = url;
-    img.style.display = 'block';
-    if (placeholder) placeholder.style.display = 'none';
-    img.onerror = () => { img.style.display = 'none'; if (placeholder) placeholder.style.display = ''; };
-  } else {
-    img.style.display = 'none';
-    if (placeholder) placeholder.style.display = '';
+  if (item.classList.contains('editing')) {
+    editSizes[id] = Array.isArray(tailles) ? [...tailles] : [];
+    renderEditSizes(id);
   }
 };
+window.cancelEdit = id => document.getElementById('item-'+id).classList.remove('editing');
 
-window.ajouterProduit = async function() {
-  if (!db) { toast('⚠️ Non connecté', 'error'); return; }
+window.sauvegarder = async id => {
+  const data = {
+    nom:     document.getElementById('edit-nom-'+id).value.trim(),
+    prix:    Number(document.getElementById('edit-prix-'+id).value),
+    desc:    document.getElementById('edit-desc-'+id).value.trim(),
+    tag:     document.getElementById('edit-tag-'+id).value || null,
+    imageUrl:document.getElementById('edit-img-'+id).value.trim() || null,
+    tailles: editSizes[id] || [],
+  };
+  if (!data.nom||!data.prix) { toast('⚠️ Nom et prix requis','error'); return; }
+  await updateDoc(doc(db,'produits',id), data);
+  document.getElementById('item-'+id).classList.remove('editing');
+  toast('✅ Produit mis à jour !','success');
+};
+
+window.supprimer = async (id, nom) => {
+  if (!confirm(`Supprimer "${nom}" ?`)) return;
+  await deleteDoc(doc(db,'produits',id));
+  toast(`🗑️ "${nom}" supprimé`,'success');
+};
+
+window.ajouterProduit = async () => {
+  if (!db) { toast('⚠️ Non connecté','error'); return; }
   const nom      = document.getElementById('nom').value.trim();
   const prix     = Number(document.getElementById('prix').value);
   const cat      = document.getElementById('cat').value;
   const tag      = document.getElementById('tag').value || null;
   const desc     = document.getElementById('desc').value.trim() || cat.charAt(0).toUpperCase()+cat.slice(1);
   const descLong = document.getElementById('descLong').value.trim() || null;
-  const taillesRaw = document.getElementById('tailles').value.trim();
-  const tailles  = taillesRaw ? taillesRaw.split(',').map(t=>t.trim()).filter(Boolean) : null;
 
-  // Ajoute l'URL courante si elle n'a pas encore été ajoutée via le bouton +
   const urlEnCours = document.getElementById('photoUrl').value.trim();
   if (urlEnCours && urlEnCours.startsWith('http') && !photosArray.includes(urlEnCours)) {
-    photosArray.push(urlEnCours);
+    photosArray.push(urlEnCours); cropDataArr.push(null);
   }
-
-  if (!nom)  { toast('⚠️ Le nom est requis',  'error'); return; }
-  if (!prix) { toast('⚠️ Le prix est requis', 'error'); return; }
+  if (!nom)  { toast('⚠️ Le nom est requis','error'); return; }
+  if (!prix) { toast('⚠️ Le prix est requis','error'); return; }
 
   const btn = document.getElementById('btnAdd');
-  btn.disabled = true; btn.textContent = 'Ajout en cours...';
-
+  btn.disabled=true; btn.textContent='Ajout en cours...';
   const emojiMap = { femme:'👗', homme:'👔', accessoires:'👜' };
-  await addDoc(collection(db, 'produits'), {
+  await addDoc(collection(db,'produits'), {
     nom, prix, cat, tag, desc, descLong,
-    tailles:   tailles || null,
-    imageUrl:  photosArray[0] || null,
-    images:    photosArray.length ? [...photosArray] : [],
-    emoji:     emojiMap[cat] || '🛍️',
-    createdAt: Date.now(),
+    imageUrl:   photosArray[0] || null,
+    images:     [...photosArray],
+    cropData:   cropDataArr[0] || null,
+    cropsData:  [...cropDataArr],
+    tailles:    [...selectedSizes],
+    emoji:      emojiMap[cat] || '🛍️',
+    createdAt:  Date.now(),
   });
-
-  // Reset
-  document.getElementById('nom').value = '';
-  document.getElementById('prix').value = '';
-  document.getElementById('desc').value = '';
-  document.getElementById('descLong').value = '';
-  document.getElementById('tailles').value  = '';
+  ['nom','prix','desc','descLong','photoUrl'].forEach(id => document.getElementById(id).value='');
   document.getElementById('tag').value = '';
-  document.getElementById('photoUrl').value = '';
-  photosArray = [];
-  renderPhotoPreviews();
-  btn.disabled = false; btn.innerHTML = '✨ Ajouter le produit';
-  toast('🎉 Produit ajouté et en ligne !', 'success');
+  photosArray=[]; cropDataArr=[]; selectedSizes=[];
+  renderPreviews(); renderSizesTags();
+  btn.disabled=false; btn.innerHTML='✨ Ajouter le produit';
+  toast('🎉 Produit ajouté et en ligne !','success');
   switchPanel('panelProduits', document.getElementById('navProduits'));
 };
 
-/* ── Panel switching (mobile) ── */
-window.switchPanel = function(panelId, linkEl) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+/* ── Utils ── */
+window.switchPanel = (panelId, linkEl) => {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(panelId).classList.add('active');
-  document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav a').forEach(a=>a.classList.remove('active'));
   if (linkEl) linkEl.classList.add('active');
   return false;
 };
-
-/* ── Toast ── */
 function toast(msg, type='success') {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'show ' + type;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.className = '', 3000);
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='show '+type;
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className='',3000);
 }
 window.toast = toast;
+window.renderSizesTags = renderSizesTags;
 </script>
-
 </body>
 </html>
