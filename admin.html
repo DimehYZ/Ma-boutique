@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <title>Medah Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0f0f0f;
+      --surface: #1a1a1a;
+      --card:    #222222;
+      --border:  rgba(255,255,255,.08);
+      --accent:  #FF0B8C;
+      --accent2: #7B2FD5;
+      --green:   #00E5A0;
+      --text:    #f0f0f0;
+      --muted:   #888;
+      --font:    'DM Sans', sans-serif;
+      --display: 'Syne', sans-serif;
+      --r:       16px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body { display: flex; flex-direction: column; min-height: 100dvh; overflow-x: hidden; }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,15,15,.9); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: var(--display); font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; }
+    .logo span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background .3s; }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+    .status-label { font-size: 12px; color: var(--muted); }
+
+    /* ── SETUP BANNER ── */
+    #setupBanner {
+      margin: 1rem 1.5rem 0; padding: 1.2rem 1.4rem;
+      background: rgba(255,11,140,.08); border: 1px solid rgba(255,11,140,.25);
+      border-radius: var(--r); font-size: 13px; line-height: 1.8;
+    }
+    #setupBanner strong { color: var(--accent); font-weight: 600; }
+    #setupBanner code { background: rgba(255,255,255,.07); padding: 2px 7px; border-radius: 6px; font-size: 12px; font-family: monospace; }
+    #setupBanner.hidden { display: none; }
+
+    /* ── CONFIG FORM ── */
+    #configSection { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); }
+    #configSection summary { cursor: pointer; font-size: 13px; color: var(--muted); font-weight: 500; list-style: none; display: flex; align-items: center; gap: 8px; }
+    #configSection summary::before { content: '⚙️'; }
+    #configSection[open] summary::before { content: '⚙️'; }
+    .config-grid { display: grid; gap: 10px; margin-top: 1rem; }
+    .config-grid input { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: var(--font); font-size: 13px; width: 100%; }
+    .config-grid input:focus { outline: none; border-color: var(--accent); }
+    .config-grid input::placeholder { color: var(--muted); }
+    .btn-connect { margin-top: 10px; width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: filter .2s; }
+    .btn-connect:hover { filter: brightness(1.15); }
+
+    /* ── MAIN CONTENT ── */
+    main { flex: 1; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto; width: 100%; }
+
+    /* ── ADD PRODUCT ── */
+    .section-title { font-family: var(--display); font-size: 1rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 1rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .section-title::before { content: ''; width: 3px; height: 1rem; background: var(--accent); border-radius: 2px; display: block; }
+
+    .add-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.4rem;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    input, select, textarea {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 14px; color: var(--text); font-family: var(--font); font-size: 14px;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    select option { background: var(--card); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .photo-input-wrap { position: relative; }
+    .photo-preview {
+      width: 100%; height: 180px; border-radius: 12px; border: 2px dashed var(--border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; transition: border-color .2s;
+      overflow: hidden; position: relative;
+    }
+    .photo-preview:hover { border-color: var(--accent); }
+    .photo-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+    .photo-preview-icon { font-size: 2rem; }
+    .photo-preview input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .url-toggle { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; margin-top: 4px; }
+
+    .btn-add {
+      width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; border: none; border-radius: 12px; padding: 14px;
+      font-family: var(--font); font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: transform .2s, box-shadow .2s; margin-top: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,11,140,.3); }
+    .btn-add:active { transform: scale(.98); }
+    .btn-add:disabled { opacity: .5; cursor: default; transform: none; box-shadow: none; }
+
+    /* ── PRODUCT LIST ── */
+    .products-list { display: flex; flex-direction: column; gap: 10px; }
+    .prod-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      transition: border-color .2s; position: relative; overflow: hidden;
+    }
+    .prod-item:hover { border-color: rgba(255,255,255,.2); }
+    .prod-thumb {
+      width: 60px; height: 72px; border-radius: 10px; flex-shrink: 0;
+      background: var(--card); display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; overflow: hidden;
+    }
+    .prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .prod-body { flex: 1; min-width: 0; }
+    .prod-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prod-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .prod-price { font-size: 1rem; font-weight: 700; color: var(--accent); margin-top: 4px; }
+    .prod-tag { display: inline-block; font-size: 10px; font-weight: 700; background: rgba(255,11,140,.15); color: var(--accent); border-radius: 6px; padding: 2px 7px; margin-top: 4px; }
+    .prod-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    .btn-edit, .btn-del {
+      border: none; border-radius: 8px; padding: 7px 12px;
+      font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: filter .2s;
+    }
+    .btn-edit { background: rgba(123,47,213,.2); color: #c084fc; }
+    .btn-edit:hover { filter: brightness(1.3); }
+    .btn-del { background: rgba(255,50,50,.1); color: #ff6b6b; }
+    .btn-del:hover { filter: brightness(1.3); }
+
+    /* Edit mode inline */
+    .prod-item.editing { border-color: var(--accent2); }
+    .inline-edit { display: none; padding: 12px 0 0; flex-direction: column; gap: 8px; }
+    .prod-item.editing .inline-edit { display: flex; }
+    .inline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (max-width: 450px) { .inline-grid { grid-template-columns: 1fr; } }
+    .inline-edit input, .inline-edit select { font-size: 13px; padding: 9px 12px; }
+    .inline-actions { display: flex; gap: 8px; }
+    .btn-save { flex: 1; background: var(--green); color: #000; border: none; border-radius: 8px; padding: 9px; font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer; }
+    .btn-cancel-edit { flex: 1; background: var(--card); color: var(--muted); border: none; border-radius: 8px; padding: 9px; font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── LOADING SKELETON ── */
+    .skeleton { background: linear-gradient(90deg, var(--card) 25%, rgba(255,255,255,.05) 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ── TOAST ── */
+    #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 10px 20px; font-size: 13px; font-weight: 600; z-index: 999; transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s; opacity: 0; white-space: nowrap; }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error { border-color: #ff6b6b; color: #ff6b6b; }
+
+    /* ── NAV BOTTOM (mobile) ── */
+    .bottom-nav { display: none; }
+    @media (max-width: 600px) {
+      .bottom-nav {
+        display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+        background: rgba(15,15,15,.95); backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border); height: 64px;
+        z-index: 40;
+      }
+      .bottom-nav a {
+        flex: 1; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 3px; text-decoration: none; color: var(--muted);
+        font-size: 10px; font-weight: 600; letter-spacing: .04em; transition: color .2s;
+      }
+      .bottom-nav a.active, .bottom-nav a:hover { color: var(--accent); }
+      .bottom-nav a span { font-size: 1.3rem; }
+      main { padding-bottom: 80px; }
+    }
+
+    /* Panels for mobile tabs */
+    .panel { display: block; }
+    @media (max-width: 600px) {
+      .panel { display: none; }
+      .panel.active { display: flex; flex-direction: column; gap: 1.5rem; }
+      main { gap: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Medah <span>Admin</span></div>
+  <div class="header-right">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-label" id="statusLabel">Non connecté</span>
+    <button id="btnLogout" onclick="seDeconnecter()" style="display:none;background:rgba(255,50,50,.12);color:#ff6b6b;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Déco</button>
+  </div>
+</header>
+
+<!-- ÉCRAN DE CONNEXION -->
+<div id="loginScreen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:2rem;min-height:60dvh;gap:1.5rem">
+  <div style="text-align:center;margin-bottom:.5rem">
+    <div style="font-size:2.5rem;margin-bottom:.8rem">🔐</div>
+    <div style="font-family:var(--display);font-size:1.4rem;font-weight:800">Accès Admin</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:6px">Connecte-toi pour gérer ta boutique</div>
+  </div>
+  <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px">
+    <input id="loginEmail" type="email" placeholder="Email admin" autocomplete="email"
+      style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--font);font-size:15px;width:100%"
+      onkeydown="if(event.key==='Enter')seConnecter()" />
+    <input id="loginMdp" type="password" placeholder="Mot de passe"
+      style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--font);font-size:15px;width:100%"
+      onkeydown="if(event.key==='Enter')seConnecter()" />
+    <button id="btnLogin" onclick="seConnecter()"
+      style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
+      Se connecter →
+    </button>
+    <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6">
+      Pas encore de compte ? Va sur Firebase Console →<br>
+      Authentication → Add user → entre ton email + mot de passe
+    </p>
+  </div>
+
+<!-- SETUP BANNER -->
+<div id="setupBanner">
+  <strong>🔧 Configuration Firebase requise</strong><br>
+  Ouvre la section ⚙️ ci-dessous, colle ta config Firebase et clique "Se connecter".<br>
+  <strong>Pour obtenir ta config :</strong> <code>console.firebase.google.com</code> → ton projet → ⚙️ Paramètres → Applications → Web → Configuration SDK
+</div>
+
+<!-- CONFIG -->
+<details id="configSection">
+  <summary>Paramètres Firebase</summary>
+  <div class="config-grid">
+    <input id="fb-apiKey"            placeholder="apiKey"            />
+    <input id="fb-authDomain"        placeholder="authDomain"        />
+    <input id="fb-projectId"         placeholder="projectId"         />
+    <input id="fb-storageBucket"     placeholder="storageBucket"     />
+    <input id="fb-messagingSenderId" placeholder="messagingSenderId" />
+    <input id="fb-appId"             placeholder="appId"             />
+    <button class="btn-connect" onclick="connectFirebase()">🔗 Se connecter à Firebase</button>
+  </div>
+</details>
+
+</div>
+<!-- FIN ÉCRAN LOGIN -->
+
+<main id="mainContent" style="display:none">
+  <!-- ADD PANEL -->
+  <div class="panel active" id="panelAjouter">
+    <div class="add-card">
+      <div class="section-title">Ajouter un produit</div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Photo du produit (URL)</label>
+          <div id="photoPreview" style="width:100%;height:160px;border-radius:12px;border:2px dashed rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:var(--card);margin-bottom:6px">
+            <span id="photoPreviewPlaceholder" style="color:var(--muted);font-size:13px">L'aperçu apparaît ici</span>
+            <img id="photoPreviewImg" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px" />
+          </div>
+          <input id="photoUrl" placeholder="Colle ici l'URL de la photo (https://...)" oninput="previewUrl(this.value)" />
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">💡 Utilise <strong style="color:#60a5fa">Cloudinary.com</strong> (gratuit) pour héberger tes photos et obtenir une URL</div>
+        </div>
+        <div class="field">
+          <label>Nom du produit</label>
+          <input id="nom" placeholder="Ex: Robe Lumière" />
+        </div>
+        <div class="field">
+          <label>Prix (€)</label>
+          <input id="prix" type="number" placeholder="189" min="0" />
+        </div>
+        <div class="field">
+          <label>Catégorie</label>
+          <select id="cat">
+            <option value="femme">Femme</option>
+            <option value="homme">Homme</option>
+            <option value="accessoires">Accessoires</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Badge (optionnel)</label>
+          <select id="tag">
+            <option value="">Aucun</option>
+            <option value="Nouveau">Nouveau</option>
+            <option value="Bestseller">Bestseller</option>
+            <option value="Exclusif">Exclusif</option>
+            <option value="Soldes">Soldes</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Description courte</label>
+          <input id="desc" placeholder="Ex: Femme · Robe de soirée" />
+        </div>
+      </div>
+      <button class="btn-add" id="btnAdd" onclick="ajouterProduit()">
+        ✨ Ajouter le produit
+      </button>
+    </div>
+  </div>
+
+  <!-- PRODUCTS PANEL -->
+  <div class="panel" id="panelProduits">
+    <div>
+      <div class="section-title">Produits en ligne (<span id="prodCount">0</span>)</div>
+      <div class="products-list" id="productsList">
+        <div class="skeleton" style="height:90px;"></div>
+        <div class="skeleton" style="height:90px;margin-top:10px;"></div>
+        <div class="skeleton" style="height:90px;margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- BOTTOM NAV (mobile only) -->
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <a href="#" onclick="switchPanel('panelAjouter',this)" class="active" id="navAjouter">
+    <span>➕</span>AJOUTER
+  </a>
+  <a href="#" onclick="switchPanel('panelProduits',this)" id="navProduits">
+    <span>👗</span>PRODUITS
+  </a>
+</nav>
+
+<div id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp }              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, query, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+let db, storage, auth, unsubscribe;
+let photoBase64 = null;
+let urlInputVisible = false;
+
+/* ── Saved config ── */
+const SAVED_KEY = 'medah_fb_config';
+const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || 'null');
+if (saved) {
+  Object.keys(saved).forEach(k => {
+    const el = document.getElementById('fb-' + k);
+    if (el) el.value = saved[k];
+  });
+}
+
+window.connectFirebase = async function() {
+  const cfg = {
+    apiKey:            "AIzaSyAi6zx44988VL26AkIh6bY_AV6UOJ2zBgk",
+    authDomain:        "theproject-19668.firebaseapp.com",
+    projectId:         "theproject-19668",
+    storageBucket:     "theproject-19668.firebasestorage.app",
+    messagingSenderId: "621072101301",
+    appId:             "1:621072101301:web:7fc5ddc238725c9b6b73fc",
+  };
+  if (!cfg.apiKey || !cfg.projectId) { toast('⚠️ Config Firebase manquante', 'error'); return; }
+  try {
+    const app = initializeApp(cfg);
+    db      = getFirestore(app);
+    storage = getStorage(app);
+    auth    = getAuth(app);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(cfg));
+    document.getElementById('setupBanner').classList.add('hidden');
+    document.getElementById('configSection').removeAttribute('open');
+
+    // Écoute l'état de connexion
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display = '';
+        document.getElementById('bottomNav').style.display   = '';
+        document.getElementById('statusDot').classList.add('connected');
+        document.getElementById('statusLabel').textContent   = user.email;
+        document.getElementById('btnLogout').style.display   = 'block';
+        listenProduits();
+      } else {
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('bottomNav').style.display   = 'none';
+        document.getElementById('statusDot').classList.remove('connected');
+        document.getElementById('statusLabel').textContent   = 'Non connecté';
+        document.getElementById('btnLogout').style.display   = 'none';
+        if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+      }
+    });
+  } catch(e) { toast('❌ Erreur Firebase : ' + e.message, 'error'); }
+};
+
+window.seConnecter = async function() {
+  if (!auth) { toast('⚠️ Configure Firebase d\'abord (section ⚙️)', 'error'); return; }
+  const email = document.getElementById('loginEmail').value.trim();
+  const mdp   = document.getElementById('loginMdp').value;
+  const btn   = document.getElementById('btnLogin');
+  if (!email || !mdp) { toast('⚠️ Email et mot de passe requis', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Connexion...';
+  try {
+    await signInWithEmailAndPassword(auth, email, mdp);
+    toast('✅ Connecté !', 'success');
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential': 'Email ou mot de passe incorrect',
+      'auth/user-not-found':     'Aucun compte avec cet email',
+      'auth/wrong-password':     'Mot de passe incorrect',
+      'auth/too-many-requests':  'Trop de tentatives, réessaie plus tard',
+    };
+    toast('❌ ' + (msgs[e.code] || e.message), 'error');
+  } finally { btn.disabled = false; btn.textContent = 'Se connecter →'; }
+};
+
+window.seDeconnecter = async function() {
+  if (auth) await signOut(auth);
+};
+
+/* Auto-connect if saved */
+if (saved?.apiKey) {
+  setTimeout(() => window.connectFirebase(), 100);
+}
+
+function listenProduits() {
+  if (unsubscribe) unsubscribe();
+  const q = query(collection(db, 'produits'), orderBy('createdAt', 'desc'));
+  unsubscribe = onSnapshot(q, snap => {
+    const produits = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    renderList(produits);
+    document.getElementById('prodCount').textContent = produits.length;
+  });
+}
+
+function renderList(produits) {
+  const el = document.getElementById('productsList');
+  if (!produits.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🛍️</div><p>Aucun produit pour l'instant.<br>Ajoute ton premier produit !</p></div>`;
+    return;
+  }
+  el.innerHTML = produits.map(p => `
+    <div class="prod-item" id="item-${p._id}">
+      <div class="prod-thumb">
+        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.nom}" />` : (p.emoji || '👗')}
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">${p.nom}</div>
+        <div class="prod-meta">${p.desc || ''} · ${p.cat}</div>
+        <div class="prod-price">${p.prix} €</div>
+        ${p.tag ? `<div class="prod-tag">${p.tag}</div>` : ''}
+
+        <!-- Inline edit form -->
+        <div class="inline-edit" id="edit-${p._id}">
+          <div class="inline-grid">
+            <input id="edit-nom-${p._id}"  value="${p.nom}"  placeholder="Nom" />
+            <input id="edit-prix-${p._id}" value="${p.prix}" placeholder="Prix" type="number" />
+            <input id="edit-desc-${p._id}" value="${p.desc || ''}" placeholder="Description" />
+            <select id="edit-tag-${p._id}">
+              <option value="">Aucun badge</option>
+              <option value="Nouveau"    ${p.tag==='Nouveau'    ?'selected':''}>Nouveau</option>
+              <option value="Bestseller" ${p.tag==='Bestseller' ?'selected':''}>Bestseller</option>
+              <option value="Exclusif"   ${p.tag==='Exclusif'   ?'selected':''}>Exclusif</option>
+              <option value="Soldes"     ${p.tag==='Soldes'     ?'selected':''}>Soldes</option>
+            </select>
+            <input id="edit-img-${p._id}" value="${p.imageUrl||''}" placeholder="URL image (optionnel)" style="grid-column:1/-1" />
+          </div>
+          <div class="inline-actions">
+            <button class="btn-save"        onclick="sauvegarder('${p._id}')">💾 Sauvegarder</button>
+            <button class="btn-cancel-edit" onclick="cancelEdit('${p._id}')">Annuler</button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-actions">
+        <button class="btn-edit" onclick="toggleEdit('${p._id}')">✏️ Édit</button>
+        <button class="btn-del"  onclick="supprimer('${p._id}','${p.nom}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.toggleEdit = function(id) {
+  const item = document.getElementById('item-'+id);
+  const form = document.getElementById('edit-'+id);
+  item.classList.toggle('editing');
+};
+window.cancelEdit = function(id) {
+  document.getElementById('item-'+id).classList.remove('editing');
+};
+
+window.sauvegarder = async function(id) {
+  const data = {
+    nom:      document.getElementById('edit-nom-'+id).value.trim(),
+    prix:     Number(document.getElementById('edit-prix-'+id).value),
+    desc:     document.getElementById('edit-desc-'+id).value.trim(),
+    tag:      document.getElementById('edit-tag-'+id).value || null,
+    imageUrl: document.getElementById('edit-img-'+id).value.trim() || null,
+  };
+  if (!data.nom || !data.prix) { toast('⚠️ Nom et prix requis', 'error'); return; }
+  await updateDoc(doc(db, 'produits', id), data);
+  document.getElementById('item-'+id).classList.remove('editing');
+  toast('✅ Produit mis à jour !', 'success');
+};
+
+window.supprimer = async function(id, nom) {
+  if (!confirm(`Supprimer "${nom}" ?`)) return;
+  await deleteDoc(doc(db, 'produits', id));
+  toast(`🗑️ "${nom}" supprimé`, 'success');
+};
+
+window.previewUrl = function(url) {
+  const img = document.getElementById('photoPreviewImg');
+  const placeholder = document.getElementById('photoPreviewPlaceholder');
+  if (url && url.startsWith('http')) {
+    img.src = url;
+    img.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+    img.onerror = () => { img.style.display = 'none'; if (placeholder) placeholder.style.display = ''; };
+  } else {
+    img.style.display = 'none';
+    if (placeholder) placeholder.style.display = '';
+  }
+};
+
+window.ajouterProduit = async function() {
+  if (!db) { toast('⚠️ Connecte-toi d\'abord à Firebase !', 'error'); return; }
+  const nom  = document.getElementById('nom').value.trim();
+  const prix = Number(document.getElementById('prix').value);
+  const cat  = document.getElementById('cat').value;
+  const tag  = document.getElementById('tag').value || null;
+  const desc = document.getElementById('desc').value.trim() || `${cat.charAt(0).toUpperCase()+cat.slice(1)}`;
+  let imageUrl = document.getElementById('photoUrl').value.trim() || null;
+
+  if (!nom)  { toast('⚠️ Le nom est requis',  'error'); return; }
+  if (!prix) { toast('⚠️ Le prix est requis', 'error'); return; }
+
+  const btn = document.getElementById('btnAdd');
+  btn.disabled = true; btn.textContent = 'Ajout en cours...';
+
+  const emojiMap = { femme:'👗', homme:'👔', accessoires:'👜' };
+  await addDoc(collection(db, 'produits'), {
+    nom, prix, cat, tag, desc,
+    imageUrl,
+    emoji: emojiMap[cat] || '🛍️',
+    createdAt: Date.now(),
+  });
+
+  // Reset form
+  document.getElementById('nom').value = '';
+  document.getElementById('prix').value = '';
+  document.getElementById('desc').value = '';
+  document.getElementById('tag').value = '';
+  document.getElementById('photoUrl').value = '';
+  const img = document.getElementById('photoPreviewImg');
+  if (img) img.style.display = 'none';
+  const ph = document.getElementById('photoPreviewPlaceholder');
+  if (ph) ph.style.display = '';
+  btn.disabled = false; btn.innerHTML = '✨ Ajouter le produit';
+  toast('🎉 Produit ajouté et en ligne !', 'success');
+  switchPanel('panelProduits', document.getElementById('navProduits'));
+};
+
+/* ── Panel switching (mobile) ── */
+window.switchPanel = function(panelId, linkEl) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
+  if (linkEl) linkEl.classList.add('active');
+  return false;
+};
+
+/* ── Toast ── */
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 3000);
+}
+window.toast = toast;
+</script>
+
+</body>
+</html>
