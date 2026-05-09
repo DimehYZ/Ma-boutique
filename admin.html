@@ -818,21 +818,32 @@ window.previewLbImg = () => {
 };
 
 window.ajouterLookbook = async () => {
-  if (!db) { toast('⚠️ Non connecté','error'); return; }
+  if (!db) { toast('⚠️ Non connecté à Firebase','error'); return; }
   const url = document.getElementById('lbUrl').value.trim();
-  if (!url) { toast('⚠️ URL requise','error'); return; }
-  await addDoc(collection(db,'lookbook'), {
-    imageUrl: url,
-    titre:    document.getElementById('lbTitre').value.trim() || null,
-    prix:     document.getElementById('lbPrix').value.trim()  || null,
-    order:    Number(document.getElementById('lbOrder').value) || 0,
-    emoji:    document.getElementById('lbEmoji').value.trim() || null,
-    createdAt: Date.now(),
-  });
-  ['lbUrl','lbTitre','lbPrix','lbEmoji'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('lbOrder').value = '0';
-  document.getElementById('lbPreviewWrap').style.display = 'none';
-  toast('📸 Image ajoutée au lookbook !','success');
+  if (!url) { toast("⚠️ URL de l'image requise",'error'); return; }
+
+  const btn = document.querySelector('#panelLookbook .btn-add');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Ajout en cours...'; }
+
+  try {
+    await addDoc(collection(db,'lookbook'), {
+      imageUrl:  url,
+      titre:     document.getElementById('lbTitre').value.trim() || null,
+      prix:      document.getElementById('lbPrix').value.trim()  || null,
+      order:     Number(document.getElementById('lbOrder').value) || 0,
+      emoji:     document.getElementById('lbEmoji').value.trim() || null,
+      createdAt: Date.now(),
+    });
+    ['lbUrl','lbTitre','lbPrix','lbEmoji'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('lbOrder').value = '0';
+    document.getElementById('lbPreviewWrap').style.display = 'none';
+    toast('📸 Image ajoutée au lookbook !','success');
+  } catch(err) {
+    console.error('Lookbook addDoc error:', err);
+    toast('❌ Erreur : ' + (err.code || err.message), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✨ Ajouter au lookbook'; }
+  }
 };
 
 window.toggleLbEdit = (id) => {
@@ -843,19 +854,29 @@ window.cancelLbEdit = (id) => {
   document.getElementById('lbEdit-'+id).style.display = 'none';
 };
 window.saveLookbookItem = async (id) => {
-  await updateDoc(doc(db,'lookbook',id), {
-    imageUrl: document.getElementById('lbEditUrl-'+id).value.trim() || null,
-    titre:    document.getElementById('lbEditTitre-'+id).value.trim() || null,
-    prix:     document.getElementById('lbEditPrix-'+id).value.trim() || null,
-    order:    Number(document.getElementById('lbEditOrder-'+id).value) || 0,
-  });
-  document.getElementById('lbEdit-'+id).style.display = 'none';
-  toast('✅ Image mise à jour !','success');
+  try {
+    await updateDoc(doc(db,'lookbook',id), {
+      imageUrl: document.getElementById('lbEditUrl-'+id).value.trim() || null,
+      titre:    document.getElementById('lbEditTitre-'+id).value.trim() || null,
+      prix:     document.getElementById('lbEditPrix-'+id).value.trim() || null,
+      order:    Number(document.getElementById('lbEditOrder-'+id).value) || 0,
+    });
+    document.getElementById('lbEdit-'+id).style.display = 'none';
+    toast('✅ Image mise à jour !','success');
+  } catch(err) {
+    console.error('Lookbook updateDoc error:', err);
+    toast('❌ Erreur : ' + (err.code || err.message), 'error');
+  }
 };
 window.supprimerLookbook = async (id) => {
   if (!confirm('Supprimer cette image du lookbook ?')) return;
-  await deleteDoc(doc(db,'lookbook',id));
-  toast('🗑️ Image supprimée','success');
+  try {
+    await deleteDoc(doc(db,'lookbook',id));
+    toast('🗑️ Image supprimée','success');
+  } catch(err) {
+    console.error('Lookbook deleteDoc error:', err);
+    toast('❌ Erreur : ' + (err.code || err.message), 'error');
+  }
 };
 </script>
 </body>
