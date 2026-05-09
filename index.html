@@ -772,7 +772,7 @@
 <!-- ═══════════════════════════════════════════════════════════
      JS
 ═══════════════════════════════════════════════════════════ -->
-<script>
+<script type="module">
 /* ── Cursor ────────────────────────────────────────────── */
 const cursor = document.getElementById('cursor');
 let mx = 0, my = 0, cx = 0, cy = 0;
@@ -811,56 +811,94 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: .1 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-/* ── Products ──────────────────────────────────────────── */
-const produits = [
-  { id:1, nom:'Robe Lumière',   cat:'femme',       prix:189, tag:'Nouveau',    desc:'Femme · Robe',     emoji:'👗' },
-  { id:2, nom:'Veste Atelier',  cat:'femme',       prix:245, tag:null,         desc:'Femme · Veste',    emoji:'🧥' },
-  { id:3, nom:'Pantalon Ligne', cat:'femme',       prix:178, tag:null,         desc:'Femme · Pantalon', emoji:'👖' },
-  { id:4, nom:'Manteau Crème',  cat:'femme',       prix:390, tag:'Bestseller', desc:'Femme · Manteau',  emoji:'🧥' },
-  { id:5, nom:'Chemise Soie',   cat:'homme',       prix:134, tag:null,         desc:'Homme · Chemise',  emoji:'👔' },
-  { id:6, nom:'Costume Épuré',  cat:'homme',       prix:520, tag:'Nouveau',    desc:'Homme · Costume',  emoji:'🤵' },
-  { id:7, nom:'Pull Cachemire', cat:'homme',       prix:210, tag:null,         desc:'Homme · Pull',     emoji:'🧶' },
-  { id:8, nom:'Sac Grain',      cat:'accessoires', prix:320, tag:'Exclusif',   desc:'Accessoire · Sac', emoji:'👜' },
-];
+/* ── Products — chargés depuis Firebase ─────────────────── */
+// ⚠️ REMPLACE ces valeurs par ta config Firebase
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAi6zx44988VL26AkIh6bY_AV6UOJ2zBgk",
+  authDomain:        "theproject-19668.firebaseapp.com",
+  projectId:         "theproject-19668",
+  storageBucket:     "theproject-19668.firebasestorage.app",
+  messagingSenderId: "621072101301",
+  appId:             "1:621072101301:web:7fc5ddc238725c9b6b73fc"
+};
+
+let produits = [];
 let panier = [];
+let currentFilter = 'all';
 
 function renderProduits(liste) {
-  document.getElementById('productsGrid').innerHTML = liste.map((p,i) => `
+  const filtered = currentFilter === 'all' ? liste : liste.filter(p => p.cat === currentFilter);
+  document.getElementById('productsGrid').innerHTML = filtered.length ? filtered.map((p,i) => `
     <div class="product-card reveal" style="transition-delay:${i*.06}s">
       <div class="product-img">
-        <div class="product-placeholder">${p.emoji}</div>
+        ${p.imageUrl
+          ? `<img src="${p.imageUrl}" alt="${p.nom}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`
+          : `<div class="product-placeholder">${p.emoji||'🛍️'}</div>`
+        }
         ${p.tag ? `<div class="product-tag ${p.tag.toLowerCase()}">${p.tag}</div>` : ''}
         <div class="product-overlay">
-          <button class="add-to-cart" onclick="ajouterPanier(${p.id},event)">+ Ajouter</button>
+          <button class="add-to-cart" onclick="ajouterPanier('${p._id}',event)">+ Ajouter</button>
         </div>
       </div>
       <div class="product-info">
-        <p class="product-cat">${p.desc}</p>
+        <p class="product-cat">${p.desc||''}</p>
         <p class="product-name">${p.nom}</p>
         <p class="product-price">${p.prix} €</p>
       </div>
-    </div>`).join('');
+    </div>`).join('')
+  : `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888">Aucun produit dans cette catégorie.</div>`;
   document.querySelectorAll('.product-card.reveal').forEach(el => obs.observe(el));
 }
-renderProduits(produits);
+
+// Initialisation Firebase
+import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({ initializeApp }) => {
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({ getFirestore, collection, onSnapshot, query, orderBy }) => {
+    try {
+      const app = initializeApp(FIREBASE_CONFIG);
+      const db  = getFirestore(app);
+      const q   = query(collection(db, 'produits'), orderBy('createdAt', 'desc'));
+      onSnapshot(q, snap => {
+        produits = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+        renderProduits(produits);
+      });
+    } catch(e) {
+      // Fallback produits statiques si Firebase non configuré
+      console.warn('Firebase non configuré, produits statiques utilisés');
+      produits = [
+        { _id:'1', nom:'Robe Lumière',   cat:'femme',       prix:189, tag:'Nouveau',    desc:'Femme · Robe',     emoji:'👗' },
+        { _id:'2', nom:'Veste Atelier',  cat:'femme',       prix:245, tag:null,         desc:'Femme · Veste',    emoji:'🧥' },
+        { _id:'3', nom:'Pantalon Ligne', cat:'femme',       prix:178, tag:null,         desc:'Femme · Pantalon', emoji:'👖' },
+        { _id:'4', nom:'Manteau Crème',  cat:'femme',       prix:390, tag:'Bestseller', desc:'Femme · Manteau',  emoji:'🧥' },
+        { _id:'5', nom:'Chemise Soie',   cat:'homme',       prix:134, tag:null,         desc:'Homme · Chemise',  emoji:'👔' },
+        { _id:'6', nom:'Costume Épuré',  cat:'homme',       prix:520, tag:'Nouveau',    desc:'Homme · Costume',  emoji:'🤵' },
+        { _id:'7', nom:'Pull Cachemire', cat:'homme',       prix:210, tag:null,         desc:'Homme · Pull',     emoji:'🧶' },
+        { _id:'8', nom:'Sac Grain',      cat:'accessoires', prix:320, tag:'Exclusif',   desc:'Accessoire · Sac', emoji:'👜' },
+      ];
+      renderProduits(produits);
+    }
+  });
+});
+renderProduits([]); // Affichage vide pendant le chargement
 
 function filterProducts(btn, cat) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderProduits(cat==='all' ? produits : produits.filter(p => p.cat===cat));
+  currentFilter = cat;
+  renderProduits(produits);
 }
 
 /* ── Cart ──────────────────────────────────────────────── */
 function ajouterPanier(id, e) {
   if (e) e.stopPropagation();
-  const p = produits.find(x => x.id===id);
-  const ex = panier.find(x => x.id===id);
+  const p = produits.find(x => x._id===id);
+  if (!p) return;
+  const ex = panier.find(x => x._id===id);
   if (ex) ex.qty++; else panier.push({...p, qty:1});
-  updateCart(); bumpCount(); sonner(`${p.emoji} "${p.nom}" ajouté !`); openCart();
+  updateCart(); bumpCount(); sonner(`${p.emoji||'🛍️'} "${p.nom}" ajouté !`); openCart();
 }
-function retirerPanier(id) { panier = panier.filter(p => p.id!==id); updateCart(); }
+function retirerPanier(id) { panier = panier.filter(p => p._id!==id); updateCart(); }
 function changerQty(id, d) {
-  const it = panier.find(p => p.id===id); if (!it) return;
+  const it = panier.find(p => p._id===id); if (!it) return;
   it.qty += d;
   if (it.qty<=0) retirerPanier(id);
   else { updateCart(); const el=document.getElementById('qty-'+id); if(el){el.classList.add('changed');setTimeout(()=>el.classList.remove('changed'),400);} }
@@ -879,16 +917,16 @@ function updateCart() {
   } else {
     iEl.innerHTML = panier.map(p => `
       <div class="cart-item">
-        <div class="cart-item-img">${p.emoji}</div>
+        <div class="cart-item-img">${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" />` : (p.emoji||'🛍️')}</div>
         <div class="cart-item-info">
           <p class="cart-item-name">${p.nom}</p>
           <p class="cart-item-size">Taille M</p>
           <p class="cart-item-price">${p.prix*p.qty} €</p>
           <div class="cart-qty">
-            <button class="qty-btn" onclick="changerQty(${p.id},-1)"><div class="qty-btn-inner">−</div></button>
-            <span class="qty-num" id="qty-${p.id}">${p.qty}</span>
-            <button class="qty-btn" onclick="changerQty(${p.id},1)"><div class="qty-btn-inner">+</div></button>
-            <button class="cart-item-remove" onclick="retirerPanier(${p.id})">Retirer</button>
+            <button class="qty-btn" onclick="changerQty('${p._id}',-1)"><div class="qty-btn-inner">−</div></button>
+            <span class="qty-num" id="qty-${p._id}">${p.qty}</span>
+            <button class="qty-btn" onclick="changerQty('${p._id}',1)"><div class="qty-btn-inner">+</div></button>
+            <button class="cart-item-remove" onclick="retirerPanier('${p._id}')">Retirer</button>
           </div>
         </div>
       </div>`).join('');
@@ -952,6 +990,15 @@ function stack() {
   vis.forEach((el,i)=>{ el.style.setProperty('--index',i); el.style.zIndex=10-i; });
   sr.style.height = vis.length ? (60+(vis.length-1)*12)+'px' : '0';
 }
+// Expose functions globally (requis pour type="module")
+window.filterProducts = filterProducts;
+window.ajouterPanier  = ajouterPanier;
+window.retirerPanier  = retirerPanier;
+window.changerQty     = changerQty;
+window.openCart       = openCart;
+window.closeCart      = closeCart;
+window.commander      = commander;
+window.dismissToast   = dismissToast;
 </script>
 </body>
 </html>
