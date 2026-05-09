@@ -287,6 +287,11 @@
           <input id="desc" placeholder="Ex: Femme · Robe de soirée" />
         </div>
         <div class="field full">
+          <label>Tailles disponibles (séparées par une virgule)</label>
+          <input id="tailles" placeholder="Ex: XS, S, M, L, XL ou 36, 38, 40, 42" />
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Laisse vide pour les tailles standard (XS à XL)</div>
+        </div>
+        <div class="field full">
           <label>Description détaillée (affichée sur la fiche produit)</label>
           <textarea id="descLong" placeholder="Ex: Robe en soie italienne, coupe fluide, idéale pour les soirées..." style="min-height:80px"></textarea>
         </div>
@@ -538,6 +543,8 @@ window.ajouterProduit = async function() {
   const tag      = document.getElementById('tag').value || null;
   const desc     = document.getElementById('desc').value.trim() || cat.charAt(0).toUpperCase()+cat.slice(1);
   const descLong = document.getElementById('descLong').value.trim() || null;
+  const taillesRaw = document.getElementById('tailles').value.trim();
+  const tailles  = taillesRaw ? taillesRaw.split(',').map(t=>t.trim()).filter(Boolean) : null;
 
   // Ajoute l'URL courante si elle n'a pas encore été ajoutée via le bouton +
   const urlEnCours = document.getElementById('photoUrl').value.trim();
@@ -554,6 +561,7 @@ window.ajouterProduit = async function() {
   const emojiMap = { femme:'👗', homme:'👔', accessoires:'👜' };
   await addDoc(collection(db, 'produits'), {
     nom, prix, cat, tag, desc, descLong,
+    tailles:   tailles || null,
     imageUrl:  photosArray[0] || null,
     images:    photosArray.length ? [...photosArray] : [],
     emoji:     emojiMap[cat] || '🛍️',
@@ -565,6 +573,7 @@ window.ajouterProduit = async function() {
   document.getElementById('prix').value = '';
   document.getElementById('desc').value = '';
   document.getElementById('descLong').value = '';
+  document.getElementById('tailles').value  = '';
   document.getElementById('tag').value = '';
   document.getElementById('photoUrl').value = '';
   photosArray = [];
