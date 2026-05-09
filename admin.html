@@ -231,33 +231,7 @@
       style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
       Se connecter →
     </button>
-    <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6">
-      Pas encore de compte ? Va sur Firebase Console →<br>
-      Authentication → Add user → entre ton email + mot de passe
-    </p>
   </div>
-
-<!-- SETUP BANNER -->
-<div id="setupBanner">
-  <strong>🔧 Configuration Firebase requise</strong><br>
-  Ouvre la section ⚙️ ci-dessous, colle ta config Firebase et clique "Se connecter".<br>
-  <strong>Pour obtenir ta config :</strong> <code>console.firebase.google.com</code> → ton projet → ⚙️ Paramètres → Applications → Web → Configuration SDK
-</div>
-
-<!-- CONFIG -->
-<details id="configSection">
-  <summary>Paramètres Firebase</summary>
-  <div class="config-grid">
-    <input id="fb-apiKey"            placeholder="apiKey"            />
-    <input id="fb-authDomain"        placeholder="authDomain"        />
-    <input id="fb-projectId"         placeholder="projectId"         />
-    <input id="fb-storageBucket"     placeholder="storageBucket"     />
-    <input id="fb-messagingSenderId" placeholder="messagingSenderId" />
-    <input id="fb-appId"             placeholder="appId"             />
-    <button class="btn-connect" onclick="connectFirebase()">🔗 Se connecter à Firebase</button>
-  </div>
-</details>
-
 </div>
 <!-- FIN ÉCRAN LOGIN -->
 
@@ -353,15 +327,7 @@ let photoBase64 = null;
 let urlInputVisible = false;
 
 /* ── Saved config ── */
-const SAVED_KEY = 'medah_fb_config';
-const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || 'null');
-if (saved) {
-  Object.keys(saved).forEach(k => {
-    const el = document.getElementById('fb-' + k);
-    if (el) el.value = saved[k];
-  });
-}
-
+// Connexion Firebase automatique au chargement
 window.connectFirebase = async function() {
   const cfg = {
     apiKey:            "AIzaSyAi6zx44988VL26AkIh6bY_AV6UOJ2zBgk",
@@ -371,17 +337,12 @@ window.connectFirebase = async function() {
     messagingSenderId: "621072101301",
     appId:             "1:621072101301:web:7fc5ddc238725c9b6b73fc",
   };
-  if (!cfg.apiKey || !cfg.projectId) { toast('⚠️ Config Firebase manquante', 'error'); return; }
   try {
     const app = initializeApp(cfg);
     db      = getFirestore(app);
     storage = getStorage(app);
     auth    = getAuth(app);
-    localStorage.setItem(SAVED_KEY, JSON.stringify(cfg));
-    document.getElementById('setupBanner').classList.add('hidden');
-    document.getElementById('configSection').removeAttribute('open');
 
-    // Écoute l'état de connexion
     onAuthStateChanged(auth, user => {
       if (user) {
         document.getElementById('loginScreen').style.display = 'none';
@@ -401,11 +362,14 @@ window.connectFirebase = async function() {
         if (unsubscribe) { unsubscribe(); unsubscribe = null; }
       }
     });
-  } catch(e) { toast('❌ Erreur Firebase : ' + e.message, 'error'); }
+  } catch(e) { console.error('Erreur Firebase', e); }
 };
 
+// Lancement automatique
+connectFirebase();
+
 window.seConnecter = async function() {
-  if (!auth) { toast('⚠️ Configure Firebase d\'abord (section ⚙️)', 'error'); return; }
+  if (!auth) { toast('⚠️ Erreur de connexion Firebase', 'error'); return; }
   const email = document.getElementById('loginEmail').value.trim();
   const mdp   = document.getElementById('loginMdp').value;
   const btn   = document.getElementById('btnLogin');
@@ -428,11 +392,6 @@ window.seConnecter = async function() {
 window.seDeconnecter = async function() {
   if (auth) await signOut(auth);
 };
-
-/* Auto-connect if saved */
-if (saved?.apiKey) {
-  setTimeout(() => window.connectFirebase(), 100);
-}
 
 function listenProduits() {
   if (unsubscribe) unsubscribe();
