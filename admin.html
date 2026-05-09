@@ -224,9 +224,15 @@
     <input id="loginEmail" type="email" placeholder="Email admin" autocomplete="email"
       style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--font);font-size:15px;width:100%"
       onkeydown="if(event.key==='Enter')seConnecter()" />
-    <input id="loginMdp" type="password" placeholder="Mot de passe"
-      style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-family:var(--font);font-size:15px;width:100%"
-      onkeydown="if(event.key==='Enter')seConnecter()" />
+    <div style="position:relative">
+      <input id="loginMdp" type="password" placeholder="Mot de passe" autocomplete="current-password"
+        style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 48px 14px 16px;color:var(--text);font-family:var(--font);font-size:15px;width:100%"
+        onkeydown="if(event.key==='Enter')seConnecter()" />
+      <button onclick="toggleMdp()" id="btnToggleMdp"
+        style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted);padding:4px">
+        👁️
+      </button>
+    </div>
     <button id="btnLogin" onclick="seConnecter()"
       style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
       Se connecter →
@@ -242,13 +248,13 @@
       <div class="section-title">Ajouter un produit</div>
       <div class="form-grid">
         <div class="field full">
-          <label>Photo du produit (URL)</label>
-          <div id="photoPreview" style="width:100%;height:160px;border-radius:12px;border:2px dashed rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:var(--card);margin-bottom:6px">
-            <span id="photoPreviewPlaceholder" style="color:var(--muted);font-size:13px">L'aperçu apparaît ici</span>
-            <img id="photoPreviewImg" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px" />
+          <label>Photos du produit (URLs)</label>
+          <div id="photoPreviews" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
+          <div style="display:flex;gap:8px">
+            <input id="photoUrl" placeholder="Colle une URL de photo (https://...)" style="flex:1" oninput="previewUrl(this.value)" />
+            <button type="button" onclick="ajouterPhoto()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:0 14px;font-size:1.2rem;cursor:pointer;flex-shrink:0">+</button>
           </div>
-          <input id="photoUrl" placeholder="Colle ici l'URL de la photo (https://...)" oninput="previewUrl(this.value)" />
-          <div style="font-size:11px;color:var(--muted);margin-top:5px">💡 Utilise <strong style="color:#60a5fa">Cloudinary.com</strong> (gratuit) pour héberger tes photos et obtenir une URL</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">💡 Utilise <strong style="color:#60a5fa">Cloudinary.com</strong> (gratuit) pour héberger tes photos</div>
         </div>
         <div class="field">
           <label>Nom du produit</label>
@@ -279,6 +285,10 @@
         <div class="field full">
           <label>Description courte</label>
           <input id="desc" placeholder="Ex: Femme · Robe de soirée" />
+        </div>
+        <div class="field full">
+          <label>Description détaillée (affichée sur la fiche produit)</label>
+          <textarea id="descLong" placeholder="Ex: Robe en soie italienne, coupe fluide, idéale pour les soirées..." style="min-height:80px"></textarea>
         </div>
       </div>
       <button class="btn-add" id="btnAdd" onclick="ajouterProduit()">
@@ -323,8 +333,36 @@ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 let db, storage, auth, unsubscribe;
-let photoBase64 = null;
-let urlInputVisible = false;
+let photosArray = []; // tableau des URLs photos
+
+window.toggleMdp = function() {
+  const inp = document.getElementById('loginMdp');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+};
+
+window.ajouterPhoto = function() {
+  const url = document.getElementById('photoUrl').value.trim();
+  if (!url || !url.startsWith('http')) { toast('⚠️ URL invalide', 'error'); return; }
+  if (photosArray.includes(url)) { toast('⚠️ Photo déjà ajoutée', 'error'); return; }
+  photosArray.push(url);
+  document.getElementById('photoUrl').value = '';
+  renderPhotoPreviews();
+};
+
+function renderPhotoPreviews() {
+  const el = document.getElementById('photoPreviews');
+  el.innerHTML = photosArray.map((url, i) => `
+    <div style="position:relative;width:80px;height:80px;flex-shrink:0">
+      <img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid var(--border)" onerror="this.style.opacity='.3'" />
+      <button onclick="supprimerPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#ff4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    </div>
+  `).join('');
+}
+window.supprimerPhoto = function(i) { photosArray.splice(i,1); renderPhotoPreviews(); };
+
+window.previewUrl = function(url) {
+  // juste un feedback visuel live — le vrai ajout se fait via le bouton +
+};
 
 /* ── Saved config ── */
 // Connexion Firebase automatique au chargement
@@ -493,13 +531,19 @@ window.previewUrl = function(url) {
 };
 
 window.ajouterProduit = async function() {
-  if (!db) { toast('⚠️ Connecte-toi d\'abord à Firebase !', 'error'); return; }
-  const nom  = document.getElementById('nom').value.trim();
-  const prix = Number(document.getElementById('prix').value);
-  const cat  = document.getElementById('cat').value;
-  const tag  = document.getElementById('tag').value || null;
-  const desc = document.getElementById('desc').value.trim() || `${cat.charAt(0).toUpperCase()+cat.slice(1)}`;
-  let imageUrl = document.getElementById('photoUrl').value.trim() || null;
+  if (!db) { toast('⚠️ Non connecté', 'error'); return; }
+  const nom      = document.getElementById('nom').value.trim();
+  const prix     = Number(document.getElementById('prix').value);
+  const cat      = document.getElementById('cat').value;
+  const tag      = document.getElementById('tag').value || null;
+  const desc     = document.getElementById('desc').value.trim() || cat.charAt(0).toUpperCase()+cat.slice(1);
+  const descLong = document.getElementById('descLong').value.trim() || null;
+
+  // Ajoute l'URL courante si elle n'a pas encore été ajoutée via le bouton +
+  const urlEnCours = document.getElementById('photoUrl').value.trim();
+  if (urlEnCours && urlEnCours.startsWith('http') && !photosArray.includes(urlEnCours)) {
+    photosArray.push(urlEnCours);
+  }
 
   if (!nom)  { toast('⚠️ Le nom est requis',  'error'); return; }
   if (!prix) { toast('⚠️ Le prix est requis', 'error'); return; }
@@ -509,22 +553,22 @@ window.ajouterProduit = async function() {
 
   const emojiMap = { femme:'👗', homme:'👔', accessoires:'👜' };
   await addDoc(collection(db, 'produits'), {
-    nom, prix, cat, tag, desc,
-    imageUrl,
-    emoji: emojiMap[cat] || '🛍️',
+    nom, prix, cat, tag, desc, descLong,
+    imageUrl:  photosArray[0] || null,
+    images:    photosArray.length ? [...photosArray] : [],
+    emoji:     emojiMap[cat] || '🛍️',
     createdAt: Date.now(),
   });
 
-  // Reset form
+  // Reset
   document.getElementById('nom').value = '';
   document.getElementById('prix').value = '';
   document.getElementById('desc').value = '';
+  document.getElementById('descLong').value = '';
   document.getElementById('tag').value = '';
   document.getElementById('photoUrl').value = '';
-  const img = document.getElementById('photoPreviewImg');
-  if (img) img.style.display = 'none';
-  const ph = document.getElementById('photoPreviewPlaceholder');
-  if (ph) ph.style.display = '';
+  photosArray = [];
+  renderPhotoPreviews();
   btn.disabled = false; btn.innerHTML = '✨ Ajouter le produit';
   toast('🎉 Produit ajouté et en ligne !', 'success');
   switchPanel('panelProduits', document.getElementById('navProduits'));
