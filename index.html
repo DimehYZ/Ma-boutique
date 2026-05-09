@@ -666,12 +666,14 @@
     <div><span class="lb-section-label">Lookbook</span><h2 class="section-title">Medah Shop <span class="grad-text-h">en image</span></h2></div>
     <a href="#" class="btn-ghost" style=""><span class="btn-ghost-inner" style="background:rgba(255,255,255,.08);color:#fff;">Voir tout</span></a>
   </div>
-  <div class="lookbook-grid">
-    <div class="lookbook-item reveal"><div class="lookbook-placeholder">👗</div><div class="lookbook-caption"><p class="lookbook-caption-title">Look du soir — Robe Lumière</p><p class="lookbook-caption-price">À partir de 189 €</p></div></div>
-    <div class="lookbook-item reveal" style="transition-delay:.1s"><div class="lookbook-placeholder">🧥</div><div class="lookbook-caption"><p class="lookbook-caption-title">Veste Atelier</p><p class="lookbook-caption-price">245 €</p></div></div>
-    <div class="lookbook-item reveal" style="transition-delay:.2s"><div class="lookbook-placeholder">👖</div><div class="lookbook-caption"><p class="lookbook-caption-title">Pantalon Ligne</p><p class="lookbook-caption-price">178 €</p></div></div>
-    <div class="lookbook-item reveal" style="transition-delay:.15s"><div class="lookbook-placeholder">👔</div><div class="lookbook-caption"><p class="lookbook-caption-title">Chemise Soie</p><p class="lookbook-caption-price">134 €</p></div></div>
-    <div class="lookbook-item reveal" style="transition-delay:.25s"><div class="lookbook-placeholder">👜</div><div class="lookbook-caption"><p class="lookbook-caption-title">Sac Grain de Cuir</p><p class="lookbook-caption-price">320 €</p></div></div>
+  <div class="lookbook-grid" id="lookbookGrid">
+    <!-- Chargé dynamiquement depuis Firebase -->
+    <div style="grid-column:1/-1;display:flex;justify-content:center;padding:3rem;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem">
+        <div style="width:36px;height:36px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:spin .8s linear infinite"></div>
+        <p style="color:rgba(255,255,255,.5);font-size:13px;font-weight:600">Chargement...</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -738,18 +740,31 @@
     <span>© 2025 Medah Shop · Tous droits réservés</span>
     <span>Fait avec 💜</span>
   </div>
-  <!-- Bouton admin discret — visible seulement si on sait où regarder -->
+  <!-- Bouton admin discret — triple-clic sur le logo, ou Ctrl+Shift+A -->
   <a href="/admin.html" id="adminLink"
      style="position:absolute;bottom:1.8rem;left:50%;transform:translateX(-50%);
-            opacity:0;font-size:10px;color:rgba(255,255,255,.1);text-decoration:none;
+            opacity:0;font-size:10px;color:rgba(255,255,255,.15);text-decoration:none;
             letter-spacing:.15em;font-weight:600;text-transform:uppercase;
-            padding:6px 14px;border-radius:100px;border:1px solid rgba(255,255,255,.05);
-            transition:opacity .4s;"
-     onmouseenter="this.style.opacity='1'"
-     onmouseleave="this.style.opacity='0'"
-     title="Admin">
-    ⚙
+            padding:6px 14px;border-radius:100px;border:1px solid rgba(255,255,255,.08);
+            transition:opacity .4s,background .3s;"
+     onmouseenter="this.style.opacity='1';this.style.background='rgba(255,255,255,.06)'"
+     onmouseleave="this.style.opacity='0';this.style.background=''"
+     title="Admin ⚙">
+    ⚙ Admin
   </a>
+  <script>
+  // Accès rapide admin : Ctrl+Shift+A ou triple-clic sur le logo
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') window.location.href = '/admin.html';
+  });
+  let logoClicks = 0, logoTimer;
+  document.querySelector('.footer-logo-big')?.addEventListener('click', () => {
+    logoClicks++;
+    clearTimeout(logoTimer);
+    logoTimer = setTimeout(() => logoClicks = 0, 800);
+    if (logoClicks >= 3) window.location.href = '/admin.html';
+  });
+  </script>
 </footer>
 
 <!-- ── VAUL DRAWER ────────────────────────────────────────── -->
@@ -897,7 +912,9 @@ import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({ ini
   import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({ getFirestore, collection, onSnapshot, query, orderBy }) => {
     const app = initializeApp(FIREBASE_CONFIG);
     const db  = getFirestore(app);
-    const q   = query(collection(db, 'produits'), orderBy('createdAt', 'desc'));
+
+    // PRODUITS
+    const q = query(collection(db, 'produits'), orderBy('createdAt', 'desc'));
     onSnapshot(q, snap => {
       produits = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
       renderProduits(produits);
@@ -908,8 +925,43 @@ import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({ ini
           Impossible de charger les produits. Réessaie plus tard.
         </div>`;
     });
+
+    // LOOKBOOK — écoute la collection 'lookbook' en temps réel
+    const ql = query(collection(db, 'lookbook'), orderBy('order', 'asc'));
+    onSnapshot(ql, snap => {
+      const items = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+      renderLookbook(items);
+    }, () => {
+      // Si la collection lookbook n'existe pas encore, afficher vide
+      document.getElementById('lookbookGrid').innerHTML =
+        `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:rgba(255,255,255,.4);font-size:13px">
+          Aucune image dans le lookbook. Ajoutez-en depuis l'admin.
+        </div>`;
+    });
   });
 });
+
+function renderLookbook(items) {
+  const grid = document.getElementById('lookbookGrid');
+  if (!items.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:rgba(255,255,255,.4);font-size:13px">
+      Aucune image dans le lookbook. Ajoutez-en depuis l'admin.</div>`;
+    return;
+  }
+  grid.innerHTML = items.map((item, i) => `
+    <div class="lookbook-item reveal" style="transition-delay:${i*.08}s">
+      ${item.imageUrl
+        ? `<img src="${item.imageUrl}" alt="${item.titre||''}" style="width:100%;height:100%;object-fit:cover;min-height:${i===0?'520':'260'}px;border-radius:20px;" />`
+        : `<div class="lookbook-placeholder" style="min-height:${i===0?'520':'260'}px">${item.emoji||'🖼️'}</div>`
+      }
+      ${item.titre || item.prix ? `
+      <div class="lookbook-caption">
+        ${item.titre ? `<p class="lookbook-caption-title">${item.titre}</p>` : ''}
+        ${item.prix  ? `<p class="lookbook-caption-price">${item.prix}</p>`  : ''}
+      </div>` : ''}
+    </div>`).join('');
+  document.querySelectorAll('#lookbookGrid .reveal').forEach(el => obs.observe(el));
+}
 
 function filterProducts(btn, cat) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1033,15 +1085,16 @@ function stack() {
   sr.style.height = vis.length ? (60+(vis.length-1)*12)+'px' : '0';
 }
 // Expose functions globally (requis pour type="module")
-window.filterProducts = filterProducts;
-window.voirProduit    = voirProduit;
-window.ajouterPanier  = ajouterPanier;
-window.retirerPanier  = retirerPanier;
-window.changerQty     = changerQty;
-window.openCart       = openCart;
-window.closeCart      = closeCart;
-window.commander      = commander;
-window.dismissToast   = dismissToast;
+window.filterProducts  = filterProducts;
+window.voirProduit     = voirProduit;
+window.ajouterPanier   = ajouterPanier;
+window.retirerPanier   = retirerPanier;
+window.changerQty      = changerQty;
+window.openCart        = openCart;
+window.closeCart       = closeCart;
+window.commander       = commander;
+window.dismissToast    = dismissToast;
+window.renderLookbook  = renderLookbook;
 </script>
 </body>
 </html>
