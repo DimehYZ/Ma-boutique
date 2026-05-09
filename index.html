@@ -569,6 +569,137 @@
       .footer-top { grid-template-columns: 1fr; gap: 2rem; }
       .sonner-region { left: 1rem; right: 1rem; width: auto; }
     }
+    /* ─── ACCÈS ADMIN DISCRET ─────────────────────────────── */
+    .admin-trigger {
+      position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 300;
+      width: 38px; height: 38px; border-radius: 50%; border: none;
+      background: rgba(123,47,213,.08); cursor: pointer;
+      transition: background .3s, transform .3s var(--spring);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .admin-trigger:hover { background: rgba(123,47,213,.18); transform: scale(1.15); }
+    .admin-trigger svg { opacity: .25; transition: opacity .3s; }
+    .admin-trigger:hover svg { opacity: .7; }
+    @media (max-width: 900px) { .admin-trigger { bottom: 1rem; left: 1rem; } }
+
+    /* ─── MODALE PRODUIT ──────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(18,11,46,0); pointer-events: none;
+      transition: background .4s;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    @media (min-width: 700px) { .modal-overlay { align-items: center; } }
+    .modal-overlay.open { background: rgba(18,11,46,.75); pointer-events: all; backdrop-filter: blur(10px); }
+
+    .modal-sheet {
+      background: var(--white); border-radius: 28px 28px 0 0;
+      width: 100%; max-height: 92vh; overflow: hidden;
+      display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform .5s var(--spring);
+      position: relative;
+    }
+    @media (min-width: 700px) {
+      .modal-sheet {
+        border-radius: 28px; max-width: 900px; max-height: 88vh;
+        flex-direction: row; transform: translateY(40px) scale(.96); opacity: 0;
+        transition: transform .45s var(--spring), opacity .35s;
+      }
+      .modal-overlay.open .modal-sheet { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); opacity: 1; }
+
+    /* Carousel */
+    .modal-gallery {
+      position: relative; background: var(--grad-soft);
+      overflow: hidden; flex-shrink: 0;
+    }
+    @media (max-width: 699px) { .modal-gallery { height: 55vw; min-height: 240px; max-height: 360px; border-radius: 0; } }
+    @media (min-width: 700px)  { .modal-gallery { width: 46%; border-radius: 28px 0 0 28px; } }
+
+    .carousel-track { display: flex; height: 100%; transition: transform .45s var(--spring); }
+    .carousel-slide { min-width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+    .carousel-slide-placeholder { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 6rem; flex-shrink: 0; }
+
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,.85); border: none; border-radius: 50%;
+      width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: var(--dark);
+      transition: background .2s, transform .3s var(--spring);
+      backdrop-filter: blur(6px); box-shadow: 0 2px 12px rgba(0,0,0,.15);
+    }
+    .carousel-btn:hover { background: #fff; transform: translateY(-50%) scale(1.1); }
+    .carousel-btn.prev { left: .75rem; }
+    .carousel-btn.next { right: .75rem; }
+
+    .carousel-dots {
+      position: absolute; bottom: .75rem; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px;
+    }
+    .carousel-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.5);
+      transition: background .25s, transform .25s var(--spring); cursor: pointer; border: none;
+    }
+    .carousel-dot.active { background: #fff; transform: scale(1.3); }
+
+    /* Modal content */
+    .modal-content {
+      flex: 1; overflow-y: auto; padding: 1.75rem 1.75rem 2rem;
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem; z-index: 10;
+      padding: 2px; border-radius: 50%; background: var(--grad); border: none; cursor: pointer;
+      transition: transform .3s var(--spring);
+    }
+    .modal-close:hover { transform: rotate(90deg) scale(1.1); }
+    .modal-close-inner { background: var(--white); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--purple); }
+
+    .modal-tag { display: inline-block; font-family: var(--font-display); font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 100px; letter-spacing: .06em; margin-bottom: .25rem; }
+    .modal-tag.nouveau    { background: rgba(255,11,140,.1);  color: var(--pink); }
+    .modal-tag.bestseller { background: rgba(123,47,213,.12); color: var(--purple); }
+    .modal-tag.exclusif   { background: rgba(43,110,255,.1);  color: var(--blue); }
+    .modal-tag.soldes     { background: rgba(0,198,100,.12);  color: #00c864; }
+
+    .modal-name { font-family: var(--font-display); font-size: clamp(1.4rem,3vw,2rem); font-weight: 700; color: var(--dark); line-height: 1.15; }
+    .modal-price { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .modal-desc-short { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--purple); opacity: .7; }
+    .modal-desc-long { font-size: 14px; color: var(--mid); line-height: 1.85; }
+
+    /* Tailles */
+    .modal-sizes-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--dark); margin-bottom: .6rem; }
+    .modal-sizes { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .size-btn {
+      padding: 6px 16px; border-radius: 100px; border: 1.5px solid rgba(123,47,213,.2);
+      font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--mid);
+      cursor: pointer; background: transparent;
+      transition: border-color .25s, color .25s, background .25s, transform .3s var(--spring);
+    }
+    .size-btn:hover:not(.selected) { border-color: var(--purple); color: var(--purple); }
+    .size-btn.selected { background: var(--grad); border-color: transparent; color: #fff; transform: scale(1.06); }
+    .size-btn.unavailable { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+
+    /* Add to cart CTA */
+    .modal-cta { display: flex; gap: 1rem; margin-top: auto; padding-top: .75rem; flex-wrap: wrap; }
+    .modal-add {
+      flex: 1; min-width: 160px; background: var(--grad); color: #fff; border: none;
+      font-family: var(--font-display); font-size: 15px; font-weight: 700;
+      padding: 1rem 1.5rem; border-radius: 100px; cursor: pointer;
+      box-shadow: 0 6px 28px rgba(123,47,213,.3);
+      transition: filter .25s, transform .4s var(--spring), box-shadow .3s;
+    }
+    .modal-add:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 36px rgba(123,47,213,.4); }
+    .modal-add:active { transform: scale(.97); }
+    .modal-add:disabled { filter: grayscale(1); cursor: not-allowed; transform: none; box-shadow: none; }
+    .modal-fav {
+      width: 52px; height: 52px; border-radius: 50%; padding: 2px;
+      background: var(--grad); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: transform .3s var(--spring); flex-shrink: 0;
+    }
+    .modal-fav:hover { transform: scale(1.12); }
+    .modal-fav-inner { background: var(--off); width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
   </style>
 </head>
 <body>
@@ -829,7 +960,7 @@ let currentFilter = 'all';
 function renderProduits(liste) {
   const filtered = currentFilter === 'all' ? liste : liste.filter(p => p.cat === currentFilter);
   document.getElementById('productsGrid').innerHTML = filtered.length ? filtered.map((p,i) => `
-    <div class="product-card reveal" style="transition-delay:${i*.06}s">
+    <div class="product-card reveal" style="transition-delay:${i*.06}s" onclick="ouvrirProduit('${p._id}')">
       <div class="product-img">
         ${p.imageUrl
           ? `<img src="${p.imageUrl}" alt="${p.nom}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />`
@@ -862,23 +993,24 @@ import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({ ini
         renderProduits(produits);
       });
     } catch(e) {
-      // Fallback produits statiques si Firebase non configuré
-      console.warn('Firebase non configuré, produits statiques utilisés');
-      produits = [
-        { _id:'1', nom:'Robe Lumière',   cat:'femme',       prix:189, tag:'Nouveau',    desc:'Femme · Robe',     emoji:'👗' },
-        { _id:'2', nom:'Veste Atelier',  cat:'femme',       prix:245, tag:null,         desc:'Femme · Veste',    emoji:'🧥' },
-        { _id:'3', nom:'Pantalon Ligne', cat:'femme',       prix:178, tag:null,         desc:'Femme · Pantalon', emoji:'👖' },
-        { _id:'4', nom:'Manteau Crème',  cat:'femme',       prix:390, tag:'Bestseller', desc:'Femme · Manteau',  emoji:'🧥' },
-        { _id:'5', nom:'Chemise Soie',   cat:'homme',       prix:134, tag:null,         desc:'Homme · Chemise',  emoji:'👔' },
-        { _id:'6', nom:'Costume Épuré',  cat:'homme',       prix:520, tag:'Nouveau',    desc:'Homme · Costume',  emoji:'🤵' },
-        { _id:'7', nom:'Pull Cachemire', cat:'homme',       prix:210, tag:null,         desc:'Homme · Pull',     emoji:'🧶' },
-        { _id:'8', nom:'Sac Grain',      cat:'accessoires', prix:320, tag:'Exclusif',   desc:'Accessoire · Sac', emoji:'👜' },
-      ];
-      renderProduits(produits);
+      // Erreur Firebase — afficher un message propre, pas de produits statiques
+      console.error('Erreur Firebase:', e);
+      document.getElementById('productsGrid').innerHTML =
+        `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#888">
+           <p style="font-size:1.5rem;margin-bottom:.5rem">⚠️</p>
+           <p>Impossible de charger les produits. Vérifie ta connexion.</p>
+         </div>`;
     }
   });
 });
-renderProduits([]); // Affichage vide pendant le chargement
+// Afficher un skeleton pendant le chargement Firebase
+document.getElementById('productsGrid').innerHTML = [1,2,3,4].map(() =>
+  `<div style="background:linear-gradient(90deg,#f0eeff 25%,#e8e0ff 50%,#f0eeff 75%);background-size:200% 100%;
+    animation:shimmerCard 1.4s infinite;border-radius:20px;aspect-ratio:3/4"></div>`
+).join('');
+const shimStyle = document.createElement('style');
+shimStyle.textContent = '@keyframes shimmerCard{0%{background-position:200% 0}100%{background-position:-200% 0}}';
+document.head.appendChild(shimStyle);
 
 function filterProducts(btn, cat) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -920,7 +1052,7 @@ function updateCart() {
         <div class="cart-item-img">${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" />` : (p.emoji||'🛍️')}</div>
         <div class="cart-item-info">
           <p class="cart-item-name">${p.nom}</p>
-          <p class="cart-item-size">Taille M</p>
+          <p class="cart-item-size">Taille ${p.size||'M'}</p>
           <p class="cart-item-price">${p.prix*p.qty} €</p>
           <div class="cart-qty">
             <button class="qty-btn" onclick="changerQty('${p._id}',-1)"><div class="qty-btn-inner">−</div></button>
@@ -990,7 +1122,128 @@ function stack() {
   vis.forEach((el,i)=>{ el.style.setProperty('--index',i); el.style.zIndex=10-i; });
   sr.style.height = vis.length ? (60+(vis.length-1)*12)+'px' : '0';
 }
-// Expose functions globally (requis pour type="module")
+/* ── Modale Produit ────────────────────────────────────── */
+let modalProduit = null;
+let carouselIndex = 0;
+let selectedSize = null;
+let favs = new Set(JSON.parse(localStorage.getItem('medah_favs')||'[]'));
+
+function ouvrirProduit(id) {
+  const p = produits.find(x => x._id === id);
+  if (!p) return;
+  modalProduit = p;
+  carouselIndex = 0;
+  selectedSize = null;
+
+  // Tag badge
+  const tagEl = document.getElementById('modalTag');
+  if (p.tag) {
+    tagEl.textContent = p.tag;
+    tagEl.className = 'modal-tag ' + p.tag.toLowerCase();
+    tagEl.style.display = 'inline-block';
+  } else { tagEl.style.display = 'none'; }
+
+  document.getElementById('modalDescShort').textContent = p.desc || '';
+  document.getElementById('modalName').textContent  = p.nom;
+  document.getElementById('modalPrice').textContent = p.prix + ' €';
+
+  // Description longue
+  const dlEl = document.getElementById('modalDescLong');
+  if (p.descLong) { dlEl.textContent = p.descLong; dlEl.style.display = ''; }
+  else dlEl.style.display = 'none';
+
+  // Carousel
+  const allImages = p.images && p.images.length ? p.images : (p.imageUrl ? [p.imageUrl] : []);
+  const track = document.getElementById('carouselTrack');
+  const dotsEl = document.getElementById('carouselDots');
+  track.innerHTML = allImages.length
+    ? allImages.map(url => `<img class="carousel-slide" src="${url}" alt="${p.nom}" />`).join('')
+    : `<div class="carousel-slide-placeholder">${p.emoji||'🛍️'}</div>`;
+  track.style.transform = 'translateX(0)';
+
+  const showArrows = allImages.length > 1;
+  document.getElementById('prevBtn').style.display = showArrows ? '' : 'none';
+  document.getElementById('nextBtn').style.display = showArrows ? '' : 'none';
+  dotsEl.innerHTML = showArrows
+    ? allImages.map((_,i) => `<button class="carousel-dot${i===0?' active':''}" onclick="carouselGoTo(${i})"></button>`).join('')
+    : '';
+
+  // Tailles
+  const sizesWrap = document.getElementById('modalSizesWrap');
+  const sizesEl   = document.getElementById('modalSizes');
+  const tailles = p.tailles && p.tailles.length ? p.tailles : ['XS','S','M','L','XL'];
+  sizesEl.innerHTML = tailles.map(t =>
+    `<button class="size-btn" onclick="selectSize(this,'${t}')">${t}</button>`
+  ).join('');
+  sizesWrap.style.display = '';
+
+  // Fav
+  document.getElementById('modalFavIcon').textContent = favs.has(id) ? '💜' : '🤍';
+
+  // Ouvrir
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function fermerModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  modalProduit = null;
+}
+
+function carouselGo(dir) {
+  const slides = document.querySelectorAll('.carousel-slide, .carousel-slide-placeholder');
+  if (!slides.length) return;
+  carouselIndex = (carouselIndex + dir + slides.length) % slides.length;
+  carouselGoTo(carouselIndex);
+}
+
+function carouselGoTo(i) {
+  carouselIndex = i;
+  document.getElementById('carouselTrack').style.transform = `translateX(-${i*100}%)`;
+  document.querySelectorAll('.carousel-dot').forEach((d,j) =>
+    d.classList.toggle('active', j===i)
+  );
+}
+
+function selectSize(btn, size) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedSize = size;
+}
+
+function toggleFav() {
+  if (!modalProduit) return;
+  const id = modalProduit._id;
+  if (favs.has(id)) { favs.delete(id); document.getElementById('modalFavIcon').textContent='🤍'; }
+  else { favs.add(id); document.getElementById('modalFavIcon').textContent='💜'; sonner('💜 Ajouté aux favoris !'); }
+  localStorage.setItem('medah_favs', JSON.stringify([...favs]));
+}
+
+function modalAjouterPanier() {
+  if (!modalProduit) return;
+  if (!selectedSize) { sonner('⚠️ Choisis une taille d\'abord'); return; }
+  const id = modalProduit._id;
+  const p  = modalProduit;
+  const key = id + '_' + selectedSize;
+  const ex  = panier.find(x => x._cartKey === key);
+  if (ex) ex.qty++;
+  else panier.push({ ...p, qty: 1, size: selectedSize, _cartKey: key });
+  updateCart(); bumpCount();
+  sonner(`${p.emoji||'🛍️'} "${p.nom}" (${selectedSize}) ajouté !`);
+  fermerModal();
+  openCart();
+}
+
+// Fermer avec Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const mo = document.getElementById('modalOverlay');
+    if (mo.classList.contains('open')) { mo.classList.remove('open'); document.body.style.overflow=''; }
+  }
+});
+
 window.filterProducts = filterProducts;
 window.ajouterPanier  = ajouterPanier;
 window.retirerPanier  = retirerPanier;
@@ -999,6 +1252,64 @@ window.openCart       = openCart;
 window.closeCart      = closeCart;
 window.commander      = commander;
 window.dismissToast   = dismissToast;
+window.ouvrirProduit  = ouvrirProduit;
+window.fermerModal    = fermerModal;
+window.carouselGo     = carouselGo;
+window.carouselGoTo   = carouselGoTo;
+window.selectSize     = selectSize;
+window.toggleFav      = toggleFav;
+window.modalAjouterPanier = modalAjouterPanier;
 </script>
+<!-- ── BOUTON ADMIN DISCRET ────────────────────────────────── -->
+<button class="admin-trigger" onclick="window.location.href='/admin.html'" title="Administration" aria-label="Accès admin">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>
+  </svg>
+</button>
+
+<!-- ── MODALE PRODUIT ──────────────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay" onclick="fermerModal(event)">
+  <div class="modal-sheet" id="modalSheet" role="dialog" aria-modal="true">
+
+    <!-- Galerie / Carousel -->
+    <div class="modal-gallery" id="modalGallery">
+      <div class="carousel-track" id="carouselTrack"></div>
+      <button class="carousel-btn prev" id="prevBtn" onclick="carouselGo(-1)" style="display:none">‹</button>
+      <button class="carousel-btn next" id="nextBtn" onclick="carouselGo(1)"  style="display:none">›</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+      <button class="modal-close" onclick="fermerModal()" style="top:.75rem;right:.75rem">
+        <div class="modal-close-inner">×</div>
+      </button>
+    </div>
+
+    <!-- Infos produit -->
+    <div class="modal-content">
+      <div>
+        <span id="modalTag" class="modal-tag" style="display:none"></span>
+        <p class="modal-desc-short" id="modalDescShort"></p>
+        <h2 class="modal-name"    id="modalName"></h2>
+      </div>
+      <p class="modal-price" id="modalPrice"></p>
+      <p class="modal-desc-long" id="modalDescLong" style="display:none"></p>
+
+      <!-- Tailles -->
+      <div id="modalSizesWrap" style="display:none">
+        <p class="modal-sizes-label">Choisir la taille</p>
+        <div class="modal-sizes" id="modalSizes"></div>
+      </div>
+
+      <!-- CTA -->
+      <div class="modal-cta">
+        <button class="modal-add" id="modalAddBtn" onclick="modalAjouterPanier()">
+          🛍️ Ajouter au panier
+        </button>
+        <button class="modal-fav" id="modalFavBtn" onclick="toggleFav()" title="Ajouter aux favoris">
+          <div class="modal-fav-inner" id="modalFavIcon">🤍</div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
