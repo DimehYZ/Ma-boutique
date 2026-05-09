@@ -315,11 +315,58 @@
       </div>
     </div>
   </div>
+
+  <!-- ═══════ LOOKBOOK PANEL ═══════ -->
+  <div class="panel" id="panelLookbook">
+    <div class="add-card">
+      <div class="section-title">Ajouter une image au lookbook</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="field">
+          <label>URL de l'image *</label>
+          <div class="photo-input-wrap">
+            <input id="lbUrl" type="url" placeholder="https://..." />
+            <button class="btn-add-photo" onclick="previewLbImg()" title="Aperçu">👁</button>
+          </div>
+        </div>
+        <div id="lbPreviewWrap" style="display:none;margin:4px 0">
+          <img id="lbPreviewImg" src="" style="width:100%;max-height:240px;object-fit:cover;border-radius:12px;border:1px solid var(--border)" />
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Titre (optionnel)</label>
+            <input id="lbTitre" placeholder="Ex : Look du soir" />
+          </div>
+          <div class="field">
+            <label>Prix / texte (optionnel)</label>
+            <input id="lbPrix" placeholder="Ex : À partir de 189 €" />
+          </div>
+          <div class="field">
+            <label>Ordre d'affichage</label>
+            <input id="lbOrder" type="number" value="0" placeholder="0" />
+          </div>
+          <div class="field">
+            <label>Emoji (si pas d'image)</label>
+            <input id="lbEmoji" placeholder="🖼️" maxlength="4" />
+          </div>
+        </div>
+        <button class="btn-add" onclick="ajouterLookbook()">✨ Ajouter au lookbook</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Images du lookbook (<span id="lbCount">0</span>)</div>
+      <div id="lbList" style="display:flex;flex-direction:column;gap:10px">
+        <div class="skeleton" style="height:80px"></div>
+        <div class="skeleton" style="height:80px;margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <nav class="bottom-nav" id="bottomNav" style="display:none">
   <a href="#" onclick="switchPanel('panelAjouter',this)" class="active" id="navAjouter"><span>➕</span>AJOUTER</a>
   <a href="#" onclick="switchPanel('panelProduits',this)" id="navProduits"><span>👗</span>PRODUITS</a>
+  <a href="#" onclick="switchPanel('panelLookbook',this)" id="navLookbook"><span>📸</span>LOOKBOOK</a>
 </nav>
 
 <!-- CROP MODAL -->
@@ -408,6 +455,7 @@ window.toggleMdp = () => {
       document.getElementById('statusLabel').textContent = user.email;
       document.getElementById('btnLogout').style.display = 'block';
       listenProduits();
+      listenLookbook();
     } else {
       document.getElementById('loginScreen').style.display = 'flex';
       hide('mainContent'); hide('bottomNav');
@@ -705,6 +753,110 @@ function toast(msg, type='success') {
 }
 window.toast = toast;
 window.renderSizesTags = renderSizesTags;
+
+/* ── LOOKBOOK ── */
+let unsubLookbook = null;
+
+function listenLookbook() {
+  if (unsubLookbook) unsubLookbook();
+  const q = query(collection(db,'lookbook'), orderBy('order','asc'));
+  unsubLookbook = onSnapshot(q, snap => {
+    const items = snap.docs.map(d=>({_id:d.id,...d.data()}));
+    renderLbList(items);
+    document.getElementById('lbCount').textContent = items.length;
+  });
+}
+
+function renderLbList(items) {
+  const el = document.getElementById('lbList');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📸</div><p>Aucune image. Ajoute la première !</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map((item, i) => `
+    <div class="prod-item" style="align-items:flex-start">
+      <div class="prod-thumb" style="height:70px">
+        ${item.imageUrl
+          ? `<img src="${item.imageUrl}" alt="" style="width:100%;height:100%;object-fit:cover" />`
+          : `<span style="font-size:2rem">${item.emoji||'🖼️'}</span>`}
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">${item.titre||'(sans titre)'}</div>
+        <div class="prod-meta">${item.prix||''} · Ordre: ${item.order||0}</div>
+        ${item.imageUrl ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;word-break:break-all;opacity:.5">${item.imageUrl.substring(0,60)}...</div>` : ''}
+        <!-- inline edit -->
+        <div id="lbEdit-${item._id}" style="display:none;flex-direction:column;gap:8px;margin-top:10px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <input id="lbEditUrl-${item._id}" value="${item.imageUrl||''}" placeholder="URL image" style="grid-column:1/-1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px"/>
+            <input id="lbEditTitre-${item._id}" value="${item.titre||''}" placeholder="Titre" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px"/>
+            <input id="lbEditPrix-${item._id}" value="${item.prix||''}" placeholder="Prix / texte" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px"/>
+            <input id="lbEditOrder-${item._id}" value="${item.order||0}" type="number" placeholder="Ordre" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px"/>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-save" onclick="saveLookbookItem('${item._id}')">💾 Sauvegarder</button>
+            <button class="btn-cancel-edit" onclick="cancelLbEdit('${item._id}')">Annuler</button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-actions">
+        <button class="btn-edit" onclick="toggleLbEdit('${item._id}')">✏️ Édit</button>
+        <button class="btn-del" onclick="supprimerLookbook('${item._id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+window.previewLbImg = () => {
+  const url = document.getElementById('lbUrl').value.trim();
+  const wrap = document.getElementById('lbPreviewWrap');
+  const img = document.getElementById('lbPreviewImg');
+  if (url && url.startsWith('http')) {
+    img.src = url; wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    toast('⚠️ URL invalide','error');
+  }
+};
+
+window.ajouterLookbook = async () => {
+  if (!db) { toast('⚠️ Non connecté','error'); return; }
+  const url = document.getElementById('lbUrl').value.trim();
+  if (!url) { toast('⚠️ URL requise','error'); return; }
+  await addDoc(collection(db,'lookbook'), {
+    imageUrl: url,
+    titre:    document.getElementById('lbTitre').value.trim() || null,
+    prix:     document.getElementById('lbPrix').value.trim()  || null,
+    order:    Number(document.getElementById('lbOrder').value) || 0,
+    emoji:    document.getElementById('lbEmoji').value.trim() || null,
+    createdAt: Date.now(),
+  });
+  ['lbUrl','lbTitre','lbPrix','lbEmoji'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('lbOrder').value = '0';
+  document.getElementById('lbPreviewWrap').style.display = 'none';
+  toast('📸 Image ajoutée au lookbook !','success');
+};
+
+window.toggleLbEdit = (id) => {
+  const el = document.getElementById('lbEdit-'+id);
+  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+};
+window.cancelLbEdit = (id) => {
+  document.getElementById('lbEdit-'+id).style.display = 'none';
+};
+window.saveLookbookItem = async (id) => {
+  await updateDoc(doc(db,'lookbook',id), {
+    imageUrl: document.getElementById('lbEditUrl-'+id).value.trim() || null,
+    titre:    document.getElementById('lbEditTitre-'+id).value.trim() || null,
+    prix:     document.getElementById('lbEditPrix-'+id).value.trim() || null,
+    order:    Number(document.getElementById('lbEditOrder-'+id).value) || 0,
+  });
+  document.getElementById('lbEdit-'+id).style.display = 'none';
+  toast('✅ Image mise à jour !','success');
+};
+window.supprimerLookbook = async (id) => {
+  if (!confirm('Supprimer cette image du lookbook ?')) return;
+  await deleteDoc(doc(db,'lookbook',id));
+  toast('🗑️ Image supprimée','success');
+};
 </script>
 </body>
 </html>
