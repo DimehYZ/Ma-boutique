@@ -354,6 +354,7 @@ import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({ ini
       document.title = `${produit.nom} — Medah Shop`;
       renderProduct(produit);
       updateCart();
+      updateWishlistBtn();
     }).catch(() => showError('Erreur lors du chargement.'));
   });
 });
@@ -416,7 +417,7 @@ function renderProduct(p) {
           <button class="btn-add-cart" id="btnAddCart" onclick="ajouterAuPanier()">
             🛍️ Ajouter au panier
           </button>
-          <button class="btn-wishlist" title="Coup de cœur">🤍</button>
+          <button class="btn-wishlist" id="btnWishlist" onclick="toggleWishlist()" title="Coup de cœur">🤍</button>
         </div>
 
         <div class="features">
@@ -570,6 +571,45 @@ function stack() {
   vis.forEach((el,i)=>{ el.style.setProperty('--index',i); el.style.zIndex=10-i; });
   sr.style.height = vis.length ? (60+(vis.length-1)*12)+'px' : '0';
 }
+
+/* ── WISHLIST ── */
+let wishlist = JSON.parse(localStorage.getItem('medah_wishlist') || '[]');
+
+function saveWishlist() { localStorage.setItem('medah_wishlist', JSON.stringify(wishlist)); }
+
+function isWishlisted(id) { return wishlist.some(x => x._id === id); }
+
+function updateWishlistBtn() {
+  const btn = document.getElementById('btnWishlist');
+  if (!btn || !produit) return;
+  const active = isWishlisted(produit._id);
+  btn.textContent = active ? '❤️' : '🤍';
+  btn.style.borderColor = active ? 'var(--pink)' : '';
+  btn.style.background  = active ? 'rgba(255,11,140,.08)' : '';
+  btn.title = active ? 'Retirer des favoris' : 'Ajouter aux favoris';
+}
+
+window.toggleWishlist = () => {
+  if (!produit) return;
+  if (isWishlisted(produit._id)) {
+    wishlist = wishlist.filter(x => x._id !== produit._id);
+    saveWishlist();
+    updateWishlistBtn();
+    sonner('🤍 Retiré des favoris');
+  } else {
+    wishlist.push({
+      _id:      produit._id,
+      nom:      produit.nom,
+      prix:     produit.prix,
+      imageUrl: produit.imageUrl || null,
+      emoji:    produit.emoji || '🛍️',
+    });
+    saveWishlist();
+    updateWishlistBtn();
+    sonner('❤️ Ajouté aux favoris !');
+  }
+};
+
 window.openCart = openCart;
 window.closeCart = closeCart;
 window.commander = commander;
