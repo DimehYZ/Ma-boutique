@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <title>Medah Admin — Expéditions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0f0f0f;
+      --surface: #1a1a1a;
+      --card:    #222222;
+      --border:  rgba(255,255,255,.08);
+      --pink:    #FF0B8C;
+      --purple:  #7B2FD5;
+      --blue:    #2B6EFF;
+      --green:   #00E5A0;
+      --text:    #f0f0f0;
+      --muted:   #888;
+      --font:    'DM Sans', sans-serif;
+      --display: 'Syne', sans-serif;
+      --grad:    linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
+      --r:       16px;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body { display: flex; flex-direction: column; min-height: 100dvh; overflow-x: hidden; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,15,15,.92); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: var(--display); font-size: 1.2rem; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .header-links { display: flex; gap: 10px; }
+    .header-link { font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,.05); transition: color .2s, background .2s; }
+    .header-link:hover { color: var(--text); background: rgba(255,255,255,.1); }
+
+    /* ── Main ── */
+    main { flex: 1; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 860px; margin: 0 auto; width: 100%; }
+
+    /* ── Auth gate ── */
+    #authGate {
+      display: flex; align-items: center; justify-content: center;
+      min-height: calc(100vh - 60px);
+    }
+    .auth-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 400px; text-align: center;
+      animation: fadeUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .auth-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .auth-title { font-family: var(--display); font-size: 1.4rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+    .auth-input {
+      width: 100%; background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      color: var(--text); font-size: 15px; font-family: var(--font);
+      outline: none; transition: border-color .2s;
+      text-align: center; letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+    }
+    .auth-input:focus { border-color: var(--purple); }
+    .auth-btn {
+      width: 100%; background: var(--grad); color: #fff; border: none;
+      border-radius: 10px; padding: 13px; font-family: var(--display);
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: filter .2s, transform .2s;
+    }
+    .auth-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .auth-err { font-size: 13px; color: var(--pink); margin-top: 10px; display: none; }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; flex-direction: column; gap: 1.5rem; }
+
+    /* ── Stats bar ── */
+    .stats-bar { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .stat-card {
+      flex: 1; min-width: 140px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.25rem;
+    }
+    .stat-num { font-family: var(--display); font-size: 2rem; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+    /* ── Section ── */
+    .section-title { font-family: var(--display); font-size: 1rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 1.75rem;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .form-input, .form-select {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px;
+      color: var(--text); font-size: 14px; font-family: var(--font);
+      outline: none; transition: border-color .2s;
+      width: 100%;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--purple); }
+    .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+    .form-textarea {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px;
+      color: var(--text); font-size: 14px; font-family: var(--font);
+      outline: none; transition: border-color .2s;
+      width: 100%; resize: vertical; min-height: 80px;
+    }
+    .form-textarea:focus { border-color: var(--purple); }
+
+    .submit-btn {
+      width: 100%; background: var(--grad); color: #fff; border: none;
+      border-radius: 12px; padding: 14px;
+      font-family: var(--display); font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: filter .2s, transform .2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-top: 0.75rem;
+    }
+    .submit-btn:hover { filter: brightness(1.08); transform: translateY(-2px); }
+    .submit-btn:disabled { filter: grayscale(1); cursor: not-allowed; transform: none; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 22px;
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+      opacity: 0; z-index: 999; white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--green); color: var(--green); }
+    .toast.error   { border-color: var(--pink);  color: var(--pink); }
+
+    /* ── History ── */
+    .history-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .history-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .history-info { display: flex; flex-direction: column; gap: 3px; }
+    .history-name { font-weight: 600; font-size: 14px; }
+    .history-meta { font-size: 12px; color: var(--muted); }
+    .history-badge {
+      padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0;
+    }
+    .badge-sent { background: rgba(0,229,160,0.12); color: var(--green); }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 14px; }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Medah Admin · Expéditions</div>
+  <div class="header-links">
+    <a href="/admin.html" class="header-link">← Dashboard</a>
+    <a href="/" class="header-link">Boutique</a>
+  </div>
+</header>
+
+<!-- Auth gate -->
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-icon">🔐</div>
+    <h1 class="auth-title">Accès admin</h1>
+    <p class="auth-sub">Entre ton mot de passe admin pour accéder à l'interface d'expédition</p>
+    <input type="password" class="auth-input" id="passwordInput" placeholder="••••••••" autocomplete="current-password" />
+    <button class="auth-btn" onclick="login()">Connexion</button>
+    <p class="auth-err" id="authErr">Mot de passe incorrect</p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<main>
+  <div id="dashboard">
+
+    <!-- Stats -->
+    <div class="stats-bar fade-in">
+      <div class="stat-card">
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">Expéditions envoyées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statToday">0</div>
+        <div class="stat-label">Aujourd'hui</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card fade-in">
+      <div class="section-title">📦 Notifier un client — colis expédié</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Email du client *</label>
+          <input type="email" class="form-input" id="clientEmail" placeholder="client@example.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prénom du client</label>
+          <input type="text" class="form-input" id="clientName" placeholder="Sophie" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">N° de commande (optionnel)</label>
+          <input type="text" class="form-input" id="orderId" placeholder="cs_1abc..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transporteur *</label>
+          <select class="form-select" id="carrier">
+            <option value="La Poste / Colissimo">La Poste / Colissimo</option>
+            <option value="Chronopost">Chronopost</option>
+            <option value="DHL">DHL</option>
+            <option value="UPS">UPS</option>
+            <option value="Mondial Relay">Mondial Relay</option>
+            <option value="Colis Privé">Colis Privé</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Lien de suivi *</label>
+          <input type="url" class="form-input" id="trackingUrl" placeholder="https://www.laposte.fr/outils/suivre-vos-envois?code=..." />
+        </div>
+      </div>
+
+      <button class="submit-btn" id="sendBtn" onclick="sendNotification()">
+        <span id="sendBtnText">📨 Envoyer la notification d'expédition</span>
+      </button>
+    </div>
+
+    <!-- Historique -->
+    <div class="form-card fade-in">
+      <div class="section-title">📋 Historique des expéditions</div>
+      <div class="history-list" id="historyList">
+        <div class="empty">
+          <div class="empty-icon">📭</div>
+          <p>Aucune expédition envoyée pour l'instant</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Sécurité admin côté client ────────────────────────────────────────────
+  // Note : la vraie vérification se fait côté serveur dans send-shipping-notification.js
+  // Ce mot de passe côté client est juste pour éviter que la page s'affiche
+  // Le ADMIN_SECRET côté serveur est la vraie sécurité
+
+  const ADMIN_PASSWORD_LOCAL = localStorage.getItem('adminPass') || '';
+  let sessionPassword = '';
+
+  function login() {
+    const pw = document.getElementById('passwordInput').value.trim();
+    if (!pw) return;
+    sessionPassword = pw;
+    // Test rapide avec un appel serveur
+    testAuth(pw);
+  }
+
+  async function testAuth(pw) {
+    // On teste en appelant avec des données vides — si 401 c'est mauvais mdp, si 400 c'est bon mdp
+    try {
+      const res = await fetch('/send-shipping-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminSecret: pw }),
+      });
+      if (res.status === 401) {
+        document.getElementById('authErr').style.display = 'block';
+        return;
+      }
+      // 400 ou autre = mdp OK
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'flex';
+      localStorage.setItem('adminPass', pw);
+      loadHistory();
+    } catch {
+      // Erreur réseau — on accepte quand même (on vérifiera au vrai envoi)
+      document.getElementById('authGate').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'flex';
+    }
+  }
+
+  // Auto-login si mdp mémorisé
+  if (ADMIN_PASSWORD_LOCAL) {
+    sessionPassword = ADMIN_PASSWORD_LOCAL;
+    document.getElementById('authGate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+    loadHistory();
+  }
+
+  // ── Envoi notification ────────────────────────────────────────────────────
+  async function sendNotification() {
+    const clientEmail  = document.getElementById('clientEmail').value.trim();
+    const clientName   = document.getElementById('clientName').value.trim();
+    const orderId      = document.getElementById('orderId').value.trim();
+    const trackingUrl  = document.getElementById('trackingUrl').value.trim();
+    const carrier      = document.getElementById('carrier').value;
+
+    if (!clientEmail) return showToast('⚠️ Email du client requis', 'error');
+    if (!trackingUrl) return showToast('⚠️ Lien de suivi requis', 'error');
+
+    const btn = document.getElementById('sendBtn');
+    const btnText = document.getElementById('sendBtnText');
+    btn.disabled = true;
+    btnText.textContent = 'Envoi en cours...';
+
+    try {
+      const res = await fetch('/send-shipping-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminSecret: sessionPassword,
+          clientEmail,
+          clientName,
+          orderId,
+          trackingUrl,
+          trackingCarrier: carrier,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur serveur');
+      }
+
+      showToast('✅ Email de suivi envoyé à ' + clientEmail, 'success');
+      saveHistory({ clientEmail, clientName, orderId, carrier, trackingUrl, date: new Date().toISOString() });
+      clearForm();
+      loadHistory();
+
+    } catch (err) {
+      showToast('❌ ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btnText.textContent = '📨 Envoyer la notification d\'expédition';
+    }
+  }
+
+  function clearForm() {
+    ['clientEmail', 'clientName', 'orderId', 'trackingUrl'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+
+  // ── Historique local ──────────────────────────────────────────────────────
+  function saveHistory(entry) {
+    const history = JSON.parse(localStorage.getItem('shippingHistory') || '[]');
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('shippingHistory', JSON.stringify(history));
+
+    // Update stats
+    updateStats(history);
+  }
+
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('shippingHistory') || '[]');
+    updateStats(history);
+
+    const list = document.getElementById('historyList');
+    if (history.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><p>Aucune expédition envoyée pour l'instant</p></div>`;
+      return;
+    }
+
+    list.innerHTML = history.map(entry => {
+      const d = new Date(entry.date);
+      const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const orderLabel = entry.orderId ? `#${entry.orderId.slice(-8).toUpperCase()}` : 'Sans ref';
+      return `
+        <div class="history-item">
+          <div class="history-info">
+            <div class="history-name">${escHtml(entry.clientName || entry.clientEmail)}</div>
+            <div class="history-meta">${escHtml(entry.clientEmail)} · ${orderLabel} · ${escHtml(entry.carrier)} · ${dateStr}</div>
+            <div class="history-meta"><a href="${escHtml(entry.trackingUrl)}" target="_blank" style="color:#7B2FD5;">🔍 Voir le suivi</a></div>
+          </div>
+          <div class="history-badge badge-sent">✓ Envoyé</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateStats(history) {
+    document.getElementById('statTotal').textContent = history.length;
+    const today = new Date().toDateString();
+    const todayCount = history.filter(e => new Date(e.date).toDateString() === today).length;
+    document.getElementById('statToday').textContent = todayCount;
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Enter to login
+  document.getElementById('passwordInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>
