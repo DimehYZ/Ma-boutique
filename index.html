@@ -608,7 +608,7 @@
 <!-- ── HERO ──────────────────────────────────────────────── -->
 <section class="hero" id="home">
   <div class="hero-left">
-    <div class="hero-tag"><span class="hero-tag-dot"></span> Printemps · Été 2025</div>
+    <div class="hero-tag"><span class="hero-tag-dot"></span> Collection 2026 🇨🇳</div>
     <h1 class="hero-title">
       La mode<br>
       <span class="underline-wrap">qui claque</span><br>
@@ -620,9 +620,7 @@
       <a href="#lookbook" class="btn-ghost"><span class="btn-ghost-inner">Lookbook</span></a>
     </div>
     <div class="hero-stats">
-      <div><div class="stat-num">500+</div><div class="stat-label">Pièces dispo</div></div>
-      <div><div class="stat-num">4.9★</div><div class="stat-label">Note client</div></div>
-      <div><div class="stat-num">48h</div><div class="stat-label">Livraison</div></div>
+      <div><div class="stat-num">🇨🇳 9-15j</div><div class="stat-label">Livraison internationale</div></div>
     </div>
   </div>
   <div class="hero-right">
@@ -644,16 +642,14 @@
 <!-- ── MARQUEE ────────────────────────────────────────────── -->
 <div class="marquee-wrap">
   <div class="marquee-track">
-    <div class="marquee-item"><span class="marquee-sep"></span>Livraison rapide</div>
-    <div class="marquee-item"><span class="marquee-sep"></span>Retours gratuits</div>
+    <div class="marquee-item"><span class="marquee-sep"></span>🇨🇳 Livraison 9-15 jours</div>
     <div class="marquee-item"><span class="marquee-sep"></span>Paiement sécurisé</div>
     <div class="marquee-item"><span class="marquee-sep"></span>Nouvelles pièces chaque semaine</div>
-    <div class="marquee-item"><span class="marquee-sep"></span>Medah Shop 2025</div>
-    <div class="marquee-item"><span class="marquee-sep"></span>Livraison rapide</div>
-    <div class="marquee-item"><span class="marquee-sep"></span>Retours gratuits</div>
+    <div class="marquee-item"><span class="marquee-sep"></span>Medah Shop 2026</div>
+    <div class="marquee-item"><span class="marquee-sep"></span>🇨🇳 Livraison 9-15 jours</div>
     <div class="marquee-item"><span class="marquee-sep"></span>Paiement sécurisé</div>
     <div class="marquee-item"><span class="marquee-sep"></span>Nouvelles pièces chaque semaine</div>
-    <div class="marquee-item"><span class="marquee-sep"></span>Medah Shop 2025</div>
+    <div class="marquee-item"><span class="marquee-sep"></span>Medah Shop 2026</div>
   </div>
 </div>
 
@@ -717,7 +713,7 @@
     <div class="contact-visual reveal">
       <div class="contact-visual-inner">
         <div class="contact-visual-logo">Medah<br>Shop</div>
-        <div class="contact-visual-badge">Réponse en 24h ✦</div>
+        <div class="contact-visual-badge">Réponse par WhatsApp ✦</div>
       </div>
     </div>
   </div>
@@ -750,7 +746,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <span>© 2025 Medah Shop · Tous droits réservés</span>
+    <span>© 2026 Medah Shop · Tous droits réservés</span>
     <span>Fait avec 💜</span>
   </div>
   <!-- Bouton admin discret — triple-clic sur le logo, ou Ctrl+Shift+A -->
@@ -1120,13 +1116,18 @@ function renderWishlist() {
     return;
   }
   el.innerHTML = wishlist.map(p => `
-    <div class="cart-item">
-      <div class="cart-item-img">${p.imageUrl ? `<img src="${p.imageUrl}" />` : (p.emoji||'🛍️')}</div>
+    <div class="cart-item" style="cursor:pointer" onclick="window.location.href='/product.html?id=${p._id}'">
+      <div class="cart-item-img">${p.imageUrl ? `<img src="${p.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px" />` : (p.emoji||'🛍️')}</div>
       <div class="cart-item-info">
         <p class="cart-item-name">${p.nom}</p>
         <p class="cart-item-price">${p.prix} €</p>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="voirProduit('${p._id}')" style="background:var(--grad);color:#fff;border:none;border-radius:100px;padding:6px 14px;font-family:var(--font-display);font-size:12px;font-weight:600;cursor:pointer">Voir</button>
+        <div style="display:flex;gap:8px;margin-top:8px" onclick="event.stopPropagation()">
+          <a href="/product.html?id=${p._id}"
+             style="background:var(--grad);color:#fff;text-decoration:none;border-radius:100px;
+                    padding:6px 16px;font-family:var(--font-display);font-size:12px;font-weight:600;
+                    display:inline-flex;align-items:center;gap:5px">
+            Voir le produit →
+          </a>
           <button onclick="removeWish('${p._id}')" class="cart-item-remove">Retirer</button>
         </div>
       </div>
