@@ -587,9 +587,21 @@
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div>
-    <button class="nav-cart" id="cartBtn" onclick="openCart()">
-      <div class="nav-cart-inner">Panier <span class="cart-count" id="cartCount">0</span></div>
-    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="wishlistNavBtn" onclick="openWishlistPanel()"
+        style="position:relative;background:none;border:1.5px solid rgba(123,47,213,.2);
+               border-radius:100px;padding:8px 16px;font-family:var(--font-display);
+               font-size:14px;font-weight:600;color:var(--purple);cursor:pointer;
+               display:flex;align-items:center;gap:7px;
+               transition:border-color .25s,background .25s,transform .3s var(--spring);"
+        onmouseenter="this.style.borderColor='var(--pink)';this.style.background='rgba(255,11,140,.06)'"
+        onmouseleave="this.style.borderColor='rgba(123,47,213,.2)';this.style.background=''">
+        🤍 <span id="wishCount" style="background:linear-gradient(135deg,#FF0B8C,#7B2FD5);color:#fff;font-size:11px;font-weight:700;width:20px;height:20px;border-radius:50%;display:none;align-items:center;justify-content:center">0</span>
+      </button>
+      <button class="nav-cart" id="cartBtn" onclick="openCart()">
+        <div class="nav-cart-inner">Panier <span class="cart-count" id="cartCount">0</span></div>
+      </button>
+    </div>
   </div>
 </nav>
 
@@ -1086,6 +1098,76 @@ function stack() {
   sr.style.height = vis.length ? (60+(vis.length-1)*12)+'px' : '0';
 }
 // Expose functions globally (requis pour type="module")
+
+/* ── WISHLIST ── */
+let wishlist = JSON.parse(localStorage.getItem('medah_wishlist') || '[]');
+
+function updateWishCount() {
+  const cnt = document.getElementById('wishCount');
+  if (!cnt) return;
+  if (wishlist.length > 0) {
+    cnt.textContent = wishlist.length;
+    cnt.style.display = 'flex';
+  } else {
+    cnt.style.display = 'none';
+  }
+}
+
+function renderWishlist() {
+  const el = document.getElementById('wlItems');
+  if (!wishlist.length) {
+    el.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🤍</div><p>Aucun favori pour l\'instant.</p></div>';
+    return;
+  }
+  el.innerHTML = wishlist.map(p => `
+    <div class="cart-item">
+      <div class="cart-item-img">${p.imageUrl ? `<img src="${p.imageUrl}" />` : (p.emoji||'🛍️')}</div>
+      <div class="cart-item-info">
+        <p class="cart-item-name">${p.nom}</p>
+        <p class="cart-item-price">${p.prix} €</p>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button onclick="voirProduit('${p._id}')" style="background:var(--grad);color:#fff;border:none;border-radius:100px;padding:6px 14px;font-family:var(--font-display);font-size:12px;font-weight:600;cursor:pointer">Voir</button>
+          <button onclick="removeWish('${p._id}')" class="cart-item-remove">Retirer</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.removeWish = (id) => {
+  wishlist = wishlist.filter(x => x._id !== id);
+  localStorage.setItem('medah_wishlist', JSON.stringify(wishlist));
+  renderWishlist();
+  updateWishCount();
+};
+
+let wlOpen = false;
+window.openWishlistPanel = () => {
+  const bd = document.getElementById('wlBackdrop');
+  const dr = document.getElementById('wlDrawer');
+  bd.style.display = ''; dr.style.display = '';
+  setTimeout(() => { bd.classList.add('open'); dr.classList.add('open'); }, 10);
+  renderWishlist();
+  wlOpen = true;
+  document.body.style.overflow = 'hidden';
+};
+window.closeWishlistPanel = () => {
+  const bd = document.getElementById('wlBackdrop');
+  const dr = document.getElementById('wlDrawer');
+  bd.classList.remove('open'); dr.classList.remove('open');
+  setTimeout(() => { bd.style.display = 'none'; dr.style.display = 'none'; }, 500);
+  wlOpen = false;
+  document.body.style.overflow = '';
+};
+
+window.addEventListener('storage', e => {
+  if (e.key === 'medah_wishlist') {
+    wishlist = JSON.parse(e.newValue || '[]');
+    updateWishCount();
+  }
+});
+
+updateWishCount();
+
 window.filterProducts  = filterProducts;
 window.voirProduit     = voirProduit;
 window.ajouterPanier   = ajouterPanier;
@@ -1097,5 +1179,20 @@ window.commander       = commander;
 window.dismissToast    = dismissToast;
 window.renderLookbook  = renderLookbook;
 </script>
+
+<!-- ═══════ WISHLIST PANEL ═══════ -->
+<div class="vaul-backdrop" id="wlBackdrop" onclick="closeWishlistPanel()" style="display:none"></div>
+<div class="vaul-drawer" id="wlDrawer" style="display:none">
+  <div class="vaul-drawer-bg"></div>
+  <div class="vaul-handle-wrap" id="wlHandleWrap"><div class="vaul-handle"></div></div>
+  <div class="cart-header">
+    <h3 class="cart-title">Mes favoris ❤️</h3>
+    <button class="cart-close" onclick="closeWishlistPanel()"><div class="cart-close-inner">×</div></button>
+  </div>
+  <div class="cart-items" id="wlItems">
+    <div class="cart-empty"><div class="cart-empty-icon">🤍</div><p>Aucun favori pour l'instant.</p></div>
+  </div>
+</div>
+
 </body>
 </html>
